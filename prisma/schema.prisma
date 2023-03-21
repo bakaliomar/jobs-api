@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String        @id @default(uuid()) @db.Uuid
+  createdAt        DateTime      @default(now())
+  updateAt         DateTime      @updatedAt
+  email            String        @unique
+  password         String
+  firstName        String
+  lastName         String
+  title            String?
+  cin              String        @unique
+  phone            String?       @unique
+  firstNameArabic  String?
+  lastNameArabic   String?
+  birthDate        String?
+  birthPlace       String?
+  birthPlaceArabic String?
+  address          String?
+  city             String?
+  cityArabic       String?
+  codePostal       String?
+  roles            Role @default(USER)
+  candidatures     Candidature[]
+
+  @@map("users")
+}
+
+model Job {
+  id              String        @id @default(uuid()) @db.Uuid
+  createdAt       DateTime      @default(now())
+  updateAt        DateTime      @updatedAt
+  name            String
+  location        String
+  description     String
+  closingDate     DateTime?
+  concours        Concour[]
+  candidatures    Candidature[]
+
+  @@map("jobs")
+}
+
+model Candidature {
+  id                String   @id @default(uuid()) @db.Uuid
+  createdAt         DateTime @default(now())
+  updateAt          DateTime @updatedAt
+  currentJob        String?
+  graduationYear    DateTime
+  graduationCountry String
+  establishment     String
+  establishmentName String
+  degreeLevel       String
+  degreeSpeciality  String
+  degreeTitle       String
+  state             String
+  isArchived        Boolean
+  dossierLink       String
+  jobId             String   @db.Uuid
+  userId            String   @db.Uuid
+  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("candidatures")
+}
+
+model Speciality {
+  id       String    @id @default(uuid()) @db.Uuid
+  name     String    @unique
+  concours Concour[]
+
+  @@map("specialities")
+}
+
+model Concour {
+  id           String       @id @default(uuid()) @db.Uuid
+  name         String       @unique
+  specialities Speciality[]
+  jobs         Job[]
+
+  @@map("concours")
+}
+
+enum Role {
+  USER
+  MANAGER
+  ADMIN
+}
