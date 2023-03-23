@@ -7,7 +7,9 @@ CREATE TABLE "users" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL,
     "email" TEXT NOT NULL,
+    "userName" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "hashedRt" TEXT,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "title" TEXT,
@@ -28,7 +30,7 @@ CREATE TABLE "users" (
 );
 
 -- CreateTable
-CREATE TABLE "jobs" (
+CREATE TABLE "concours" (
     "id" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL,
@@ -37,7 +39,7 @@ CREATE TABLE "jobs" (
     "description" TEXT NOT NULL,
     "closingDate" TIMESTAMP(3),
 
-    CONSTRAINT "jobs_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "concours_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -56,7 +58,7 @@ CREATE TABLE "candidatures" (
     "state" TEXT NOT NULL,
     "isArchived" BOOLEAN NOT NULL,
     "dossierLink" TEXT NOT NULL,
-    "jobId" UUID NOT NULL,
+    "concourId" UUID NOT NULL,
     "userId" UUID NOT NULL,
 
     CONSTRAINT "candidatures_pkey" PRIMARY KEY ("id")
@@ -71,27 +73,30 @@ CREATE TABLE "specialities" (
 );
 
 -- CreateTable
-CREATE TABLE "concours" (
+CREATE TABLE "grades" (
     "id" UUID NOT NULL,
     "name" TEXT NOT NULL,
 
-    CONSTRAINT "concours_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "grades_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "_ConcourToSpeciality" (
+CREATE TABLE "_ConcourToGrade" (
     "A" UUID NOT NULL,
     "B" UUID NOT NULL
 );
 
 -- CreateTable
-CREATE TABLE "_ConcourToJob" (
+CREATE TABLE "_GradeToSpeciality" (
     "A" UUID NOT NULL,
     "B" UUID NOT NULL
 );
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_userName_key" ON "users"("userName");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_cin_key" ON "users"("cin");
@@ -103,34 +108,34 @@ CREATE UNIQUE INDEX "users_phone_key" ON "users"("phone");
 CREATE UNIQUE INDEX "specialities_name_key" ON "specialities"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "concours_name_key" ON "concours"("name");
+CREATE UNIQUE INDEX "grades_name_key" ON "grades"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "_ConcourToSpeciality_AB_unique" ON "_ConcourToSpeciality"("A", "B");
+CREATE UNIQUE INDEX "_ConcourToGrade_AB_unique" ON "_ConcourToGrade"("A", "B");
 
 -- CreateIndex
-CREATE INDEX "_ConcourToSpeciality_B_index" ON "_ConcourToSpeciality"("B");
+CREATE INDEX "_ConcourToGrade_B_index" ON "_ConcourToGrade"("B");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "_ConcourToJob_AB_unique" ON "_ConcourToJob"("A", "B");
+CREATE UNIQUE INDEX "_GradeToSpeciality_AB_unique" ON "_GradeToSpeciality"("A", "B");
 
 -- CreateIndex
-CREATE INDEX "_ConcourToJob_B_index" ON "_ConcourToJob"("B");
+CREATE INDEX "_GradeToSpeciality_B_index" ON "_GradeToSpeciality"("B");
 
 -- AddForeignKey
-ALTER TABLE "candidatures" ADD CONSTRAINT "candidatures_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "jobs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "candidatures" ADD CONSTRAINT "candidatures_concourId_fkey" FOREIGN KEY ("concourId") REFERENCES "concours"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "candidatures" ADD CONSTRAINT "candidatures_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_ConcourToSpeciality" ADD CONSTRAINT "_ConcourToSpeciality_A_fkey" FOREIGN KEY ("A") REFERENCES "concours"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_ConcourToGrade" ADD CONSTRAINT "_ConcourToGrade_A_fkey" FOREIGN KEY ("A") REFERENCES "concours"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_ConcourToSpeciality" ADD CONSTRAINT "_ConcourToSpeciality_B_fkey" FOREIGN KEY ("B") REFERENCES "specialities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_ConcourToGrade" ADD CONSTRAINT "_ConcourToGrade_B_fkey" FOREIGN KEY ("B") REFERENCES "grades"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_ConcourToJob" ADD CONSTRAINT "_ConcourToJob_A_fkey" FOREIGN KEY ("A") REFERENCES "concours"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_GradeToSpeciality" ADD CONSTRAINT "_GradeToSpeciality_A_fkey" FOREIGN KEY ("A") REFERENCES "grades"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_ConcourToJob" ADD CONSTRAINT "_ConcourToJob_B_fkey" FOREIGN KEY ("B") REFERENCES "jobs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_GradeToSpeciality" ADD CONSTRAINT "_GradeToSpeciality_B_fkey" FOREIGN KEY ("B") REFERENCES "specialities"("id") ON DELETE CASCADE ON UPDATE CASCADE;

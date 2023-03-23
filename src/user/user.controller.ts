@@ -1,9 +1,8 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { isNil, omitBy } from 'lodash';
 import { GetUser } from '@/auth/decorator';
-import { JwtGuard } from '@/auth/guard';
-import { ACGuard, UseRoles } from 'nest-access-control';
+import { UseRoles } from 'nest-access-control';
 import { GetPaginate } from '@/prisma/decorator/get-paginate';
 import { PaginateFunction } from 'prisma-pagination';
 import { UserService } from './user.service';
@@ -12,7 +11,6 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private userService: UserService) {}
   //GET /users/me
-  @UseGuards(JwtGuard)
   @Get('me')
   getMe(@GetUser() user: User) {
     return omitBy(user, isNil);
@@ -21,8 +19,8 @@ export class UserController {
   @UseRoles({
     resource: 'users',
     action: 'read',
+    possession: 'any',
   })
-  @UseGuards(JwtGuard, ACGuard)
   @Get('all')
   getAllUsers(@GetPaginate() paginate: PaginateFunction) {
     return this.userService.getAllUsers(paginate);
