@@ -30,6 +30,7 @@ export class UserController {
   @UseRoles({
     resource: 'users',
     action: 'read',
+    possession: 'any',
   })
   @Get()
   getAllUsers(@GetPaginate() paginate: PaginateFunction) {

@@ -15,7 +15,9 @@ model User {
   createdAt        DateTime      @default(now())
   updateAt         DateTime      @updatedAt
   email            String        @unique
+  userName         String?        @unique
   password         String
+  hashedRt         String?
   firstName        String
   lastName         String
   title            String?
@@ -30,24 +32,24 @@ model User {
   city             String?
   cityArabic       String?
   codePostal       String?
-  roles            Role @default(USER)
+  roles            Role          @default(USER)
   candidatures     Candidature[]
 
   @@map("users")
 }
 
-model Job {
-  id              String        @id @default(uuid()) @db.Uuid
-  createdAt       DateTime      @default(now())
-  updateAt        DateTime      @updatedAt
-  name            String
-  location        String
-  description     String
-  closingDate     DateTime?
-  concours        Concour[]
-  candidatures    Candidature[]
+model Concour {
+  id           String        @id @default(uuid()) @db.Uuid
+  createdAt    DateTime      @default(now())
+  updateAt     DateTime      @updatedAt
+  name         String
+  location     String
+  description  String
+  closingDate  DateTime?
+  grades       Grade[]
+  candidatures Candidature[]
 
-  @@map("jobs")
+  @@map("concours")
 }
 
 model Candidature {
@@ -65,29 +67,29 @@ model Candidature {
   state             String
   isArchived        Boolean
   dossierLink       String
-  jobId             String   @db.Uuid
+  concourId         String   @db.Uuid
   userId            String   @db.Uuid
-  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  concour           Concour  @relation(fields: [concourId], references: [id], onDelete: Cascade)
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("candidatures")
 }
 
 model Speciality {
-  id       String    @id @default(uuid()) @db.Uuid
-  name     String    @unique
-  concours Concour[]
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String  @unique
+  grades Grade[]
 
   @@map("specialities")
 }
 
-model Concour {
+model Grade {
   id           String       @id @default(uuid()) @db.Uuid
   name         String       @unique
   specialities Speciality[]
-  jobs         Job[]
+  concours     Concour[]
 
-  @@map("concours")
+  @@map("grades")
 }
 
 enum Role {
