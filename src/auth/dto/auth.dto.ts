@@ -11,11 +11,11 @@ export class AuthDto {
 
   @IsString()
   @IsNotEmpty()
-  first_name: string;
+  firstName: string;
 
   @IsString()
   @IsNotEmpty()
-  last_name: string;
+  lastName: string;
 
   @IsString()
   @IsNotEmpty()
@@ -25,7 +25,7 @@ export class AuthDto {
 export class SigninAuthDto {
   @IsString()
   @IsNotEmpty()
-  user_name: string;
+  userName: string;
 
   @IsString()
   @IsNotEmpty()
