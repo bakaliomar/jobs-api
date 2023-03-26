@@ -23,8 +23,33 @@ describe('App e2e', () => {
     prisma = app.get(PrismaService);
     app.listen(3333);
     await prisma.cleanDB();
+    pactum.sleep(500);
+    await prisma.user.create({
+      data: {
+        email: 'admin@gmail.com',
+        password:
+          '$argon2id$v=19$m=65536,t=3,p=4$xiT85ZUlQe19dKyLMXPNgg$AoH8IKT+pRNUeVUrRUElmQREMI0DmlLLrOffhaii1vE',
+        cin: 'k45849',
+        firstName: 'admin',
+        lastName: 'test',
+        roles: 'ADMIN',
+      },
+    });
+    await prisma.user.create({
+      data: {
+        email: 'manager@gmail.com',
+        password:
+          '$argon2id$v=19$m=65536,t=3,p=4$xiT85ZUlQe19dKyLMXPNgg$AoH8IKT+pRNUeVUrRUElmQREMI0DmlLLrOffhaii1vE',
+        cin: 'k5849',
+        firstName: 'manager',
+        lastName: 'test',
+        roles: 'MANAGER',
+      },
+    });
     pactum.request.setBaseUrl('http://localhost:3333');
   });
+
+  pactum.sleep(1000);
 
   afterAll(() => {
     app.close();
@@ -36,8 +61,8 @@ describe('App e2e', () => {
         email: 'test245@gmail.com',
         password: '123',
         cin: 'kb45849',
-        first_name: 'test',
-        last_name: 'test',
+        firstName: 'test',
+        lastName: 'test',
       };
       it('should signup', () => {
         return pactum
@@ -65,14 +90,14 @@ describe('App e2e', () => {
         return pactum
           .spec()
           .post('/auth/signup')
-          .withBody({ ...dto, first_name: '' })
+          .withBody({ ...dto, firstName: '' })
           .expectStatus(400);
       });
       it('should should throw an error if last name is empty', () => {
         return pactum
           .spec()
           .post('/auth/signup')
-          .withBody({ ...dto, last_name: '' })
+          .withBody({ ...dto, lastName: '' })
           .expectStatus(400);
       });
       it('should should throw an error if cin is empty', () => {
@@ -92,7 +117,7 @@ describe('App e2e', () => {
     });
     describe('signin', () => {
       const dto: SigninAuthDto = {
-        user_name: 'test245@gmail.com',
+        userName: 'test245@gmail.com',
         password: '123',
       };
       it('should throw if email empty', () => {
@@ -109,7 +134,7 @@ describe('App e2e', () => {
           .spec()
           .post('/auth/signin')
           .withBody({
-            email: dto.user_name,
+            email: dto.userName,
           })
           .expectStatus(400);
       });
@@ -140,6 +165,174 @@ describe('App e2e', () => {
       });
       it('should get the current logged in user', () => {
         return pactum.spec().get('/users/me').expectStatus(401);
+      });
+    });
+    describe('Get All users', () => {
+      it('should signin with admin', () => {
+        return pactum
+          .spec()
+          .post('/auth/signin')
+          .withBody({ userName: 'admin@gmail.com', password: '123' })
+          .expectStatus(200)
+          .stores('adminAt', 'access_token');
+      });
+      it('should signin with manager', () => {
+        return pactum
+          .spec()
+          .post('/auth/signin')
+          .withBody({ userName: 'manager@gmail.com', password: '123' })
+          .expectStatus(200)
+          .stores('managerAt', 'access_token');
+      });
+      it('should get all users as admin', () => {
+        return pactum
+          .spec()
+          .get('/users')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .expectStatus(200);
+      });
+      it('should get all users as manager', () => {
+        return pactum
+          .spec()
+          .get('/users')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .expectStatus(200);
+      });
+      it('should not get all users as user', () => {
+        return pactum
+          .spec()
+          .get('/users')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(403);
+      });
+    });
+    describe('create user', () => {
+      const user = {
+        email: 'test2ds5@gmail.com',
+        password: '123',
+        cin: 'kb4sad5849',
+        firstName: 'test',
+        lastName: 'test',
+        roles: 'USER',
+      };
+
+      it('should not create user as a user', () => {
+        return pactum
+          .spec()
+          .post('/users')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withBody(user)
+          .expectStatus(403);
+      });
+
+      it('should not create user as a manager', () => {
+        return pactum
+          .spec()
+          .post('/users')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .withBody(user)
+          .expectStatus(403);
+      });
+
+      it('should create user as an admin', () => {
+        return pactum
+          .spec()
+          .post('/users')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withBody(user)
+          .expectStatus(201)
+          .stores('userId', 'id');
+      });
+    });
+
+    describe('edit user', () => {
+      it('should not update a user as a user', () => {
+        return pactum
+          .spec()
+          .patch('/users/{id}')
+          .withPathParams('id', '$S{userId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withBody({ email: 'test2ds5@gmail.com' })
+          .expectStatus(403);
+      });
+      it('should not update a user as a manager', () => {
+        return pactum
+          .spec()
+          .patch('/users/{id}')
+          .withPathParams('id', '$S{userId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .withBody({ email: 'test2ds5@gmail.com' })
+          .expectStatus(403);
+      });
+      it('should not upadate user with the same email as an admin', () => {
+        return pactum
+          .spec()
+          .patch('/users/{id}')
+          .withPathParams('id', '$S{userId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .withBody({ email: 'test2ds5@gmail.com' })
+          .expectStatus(403);
+      });
+      it('should update a user as an admin', () => {
+        return pactum
+          .spec()
+          .patch('/users/{id}')
+          .withPathParams('id', '$S{userId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withBody({ email: 'test5894@gmail.com' })
+          .expectStatus(200);
+      });
+    });
+    describe('delete user', () => {
+      it('should not be able to delete a user as a user', () => {
+        return pactum
+          .spec()
+          .delete('/users/{id}')
+          .withPathParams('id', '$S{userId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(403);
+      });
+      it('should not be able to delete a user as a manager', () => {
+        return pactum
+          .spec()
+          .delete('/users/{id}')
+          .withPathParams('id', '$S{userId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .expectStatus(403);
+      });
+      it('should delete a user as an admin', () => {
+        return pactum
+          .spec()
+          .delete('/users/{id}')
+          .withPathParams('id', '$S{userId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .expectStatus(200);
       });
     });
   });
