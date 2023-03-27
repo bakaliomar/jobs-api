@@ -23,7 +23,7 @@ describe('App e2e', () => {
     prisma = app.get(PrismaService);
     app.listen(3333);
     await prisma.cleanDB();
-    pactum.sleep(500);
+    pactum.sleep(2000);
     await prisma.user.create({
       data: {
         email: 'admin@gmail.com',
@@ -338,8 +338,44 @@ describe('App e2e', () => {
   });
 
   describe('Speciality', () => {
-    it('should get all the specialties', () => {
-      return pactum.spec().get('/specailties');
+    describe('Create Speciality', () => {
+      it('should not create a specilaity as a user', () => {
+        return pactum
+          .spec()
+          .post('/specialities')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withBody({
+            name: 'dev info',
+          })
+          .expectStatus(403);
+      });
+      it('should create a specilaity as a manager', () => {
+        return pactum
+          .spec()
+          .post('/specialities')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .withBody({
+            name: 'reseau info',
+          })
+          .expectStatus(201);
+      });
+      it('should create a specilaity as a admin', () => {
+        return pactum
+          .spec()
+          .post('/specialities')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withBody({
+            name: 'dev info',
+          })
+          .expectStatus(201)
+          .inspect();
+      });
     });
   });
 });

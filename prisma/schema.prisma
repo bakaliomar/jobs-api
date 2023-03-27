@@ -15,7 +15,7 @@ model User {
   createdAt        DateTime      @default(now())
   updateAt         DateTime      @updatedAt
   email            String        @unique
-  userName         String?        @unique
+  userName         String?       @unique
   password         String
   hashedRt         String?
   firstName        String
@@ -35,27 +35,42 @@ model User {
   roles            Role          @default(USER)
   candidatures     Candidature[]
 
+  @@index([firstName], name: "frst_nm_idx")
+  @@index([lastName], name: "lst_nm_idx")
+  @@index([email], name: "eml_idx")
+  @@index([cin], name: "cin_idx")
   @@map("users")
 }
 
 model Concour {
-  id           String        @id @default(uuid()) @db.Uuid
-  createdAt    DateTime      @default(now())
-  updateAt     DateTime      @updatedAt
-  name         String
-  location     String
-  description  String
-  closingDate  DateTime?
-  grades       Grade[]
-  candidatures Candidature[]
+  id                String                @id @default(uuid()) @db.Uuid
+  createdAt         DateTime              @default(now())
+  updateAt          DateTime              @updatedAt
+  name              String
+  location          String?
+  description       String
+  closingDate       DateTime?
+  candidatures      Candidature[]
+  concourSpeciality ConcourToSpeciality[]
 
   @@map("concours")
 }
 
+model ConcourToSpeciality {
+  concourId    String     @db.Uuid
+  specialityId String     @db.Uuid
+  concour      Concour    @relation(fields: [concourId], references: [id], onDelete: Cascade)
+  speciality   Speciality @relation(fields: [specialityId], references: [id], onDelete: Cascade)
+
+  @@id([concourId, specialityId])
+  @@index([concourId], name: "cnc_id_idx")
+  @@index([specialityId], name: "spc_id_idx")
+  @@map("concour_specialities_speciality")
+}
+
 model Candidature {
-  id                String   @id @default(uuid()) @db.Uuid
-  createdAt         DateTime @default(now())
-  updateAt          DateTime @updatedAt
+  createdAt         DateTime   @default(now())
+  updateAt          DateTime   @updatedAt
   currentJob        String?
   graduationYear    DateTime
   graduationCountry String
@@ -67,29 +82,28 @@ model Candidature {
   state             String
   isArchived        Boolean
   dossierLink       String
-  concourId         String   @db.Uuid
-  userId            String   @db.Uuid
-  concour           Concour  @relation(fields: [concourId], references: [id], onDelete: Cascade)
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concourId         String     @db.Uuid
+  userId            String     @db.Uuid
+  specialityId      String     @db.Uuid
+  concour           Concour    @relation(fields: [concourId], references: [id], onDelete: Cascade)
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  speciality        Speciality @relation(fields: [specialityId], references: [id], onDelete: Cascade)
 
+  @@id([concourId, userId, specialityId])
+  @@index([concourId], name: "cnd_cnc_id_idx")
+  @@index([establishment], name: "cnd_etbl_idx")
   @@map("candidatures")
 }
 
 model Speciality {
-  id     String  @id @default(uuid()) @db.Uuid
-  name   String  @unique
-  grades Grade[]
+  id                String                @id @default(uuid()) @db.Uuid
+  createdAt         DateTime              @default(now())
+  updateAt          DateTime              @updatedAt
+  name              String                @unique
+  concourSpeciality ConcourToSpeciality[]
+  Candidature       Candidature[]
 
   @@map("specialities")
-}
-
-model Grade {
-  id           String       @id @default(uuid()) @db.Uuid
-  name         String       @unique
-  specialities Speciality[]
-  concours     Concour[]
-
-  @@map("grades")
 }
 
 enum Role {
