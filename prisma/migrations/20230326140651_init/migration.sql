@@ -7,7 +7,7 @@ CREATE TABLE "users" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL,
     "email" TEXT NOT NULL,
-    "userName" TEXT NOT NULL,
+    "userName" TEXT,
     "password" TEXT NOT NULL,
     "hashedRt" TEXT,
     "firstName" TEXT NOT NULL,

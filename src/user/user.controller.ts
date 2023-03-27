@@ -6,12 +6,10 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { isNil, omitBy } from 'lodash';
 import { GetUser } from '@/auth/decorator';
-import { JwtGuard } from '@/auth/guard';
 import { UseRoles } from 'nest-access-control';
 import { GetPaginate } from '@/prisma/decorator/get-paginate';
 import { PaginateFunction } from 'prisma-pagination';

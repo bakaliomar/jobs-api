@@ -30,7 +30,6 @@ export class PrismaService
       this.candidature.deleteMany(),
       this.concour.deleteMany(),
       this.user.deleteMany(),
-      this.grade.deleteMany(),
       this.speciality.deleteMany(),
     ]);
   }
