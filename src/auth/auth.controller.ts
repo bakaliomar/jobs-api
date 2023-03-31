@@ -1,8 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { User } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { GetUser, Public } from './decorator';
 import { AuthDto, SigninAuthDto } from './dto';
+import { RtGuard } from './guard';
 import { Tokens } from './types';
 
 @Controller('auth')
@@ -32,9 +40,11 @@ export class AuthController {
   }
 
   // Post /auth/refresh
+  @Public()
+  @UseGuards(RtGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refresh(@GetUser() user: User & { refresh_token: string }) {
-    return this.authService.refresh(user.id, user.refresh_token);
+  refresh(@GetUser() user: User & { refreshToken: string }) {
+    return this.authService.refresh(user.id, user.refreshToken);
   }
 }
