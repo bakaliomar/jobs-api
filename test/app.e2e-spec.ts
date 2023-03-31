@@ -361,7 +361,8 @@ describe('App e2e', () => {
           .withBody({
             name: 'reseau info',
           })
-          .expectStatus(201);
+          .expectStatus(201)
+          .stores('specialityId2', 'id');
       });
       it('should create a specilaity as a admin', () => {
         return pactum
@@ -372,6 +373,229 @@ describe('App e2e', () => {
           })
           .withBody({
             name: 'dev info',
+          })
+          .expectStatus(201)
+          .stores('specialityId', 'id');
+      });
+    });
+    describe('Read all Specialites', () => {
+      it('should not show all specilaities as a user', () => {
+        return pactum
+          .spec()
+          .get('/specialities')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(403);
+      });
+      it('should show all specilaities as a manager', () => {
+        return pactum
+          .spec()
+          .get('/specialities')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .expectStatus(200);
+      });
+      it('should should show all specilaities as an admin', () => {
+        return pactum
+          .spec()
+          .get('/specialities')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .expectStatus(200);
+      });
+    });
+    describe('Read a Speciality', () => {
+      it('should not show a specilaity as a user', () => {
+        return pactum
+          .spec()
+          .get('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .expectStatus(403);
+      });
+      it('should show a specilaity as a manager', () => {
+        return pactum
+          .spec()
+          .get('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .expectStatus(200);
+      });
+      it('should should show a specilaity as an admin', () => {
+        return pactum
+          .spec()
+          .get('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .expectStatus(200);
+      });
+    });
+    describe('Update a Speciality', () => {
+      it('should not update a specilaity as a user', () => {
+        return pactum
+          .spec()
+          .patch('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .withBody({
+            name: 'devops',
+          })
+          .expectStatus(403);
+      });
+      it('should update a specilaity as a manager', () => {
+        return pactum
+          .spec()
+          .patch('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .withBody({
+            name: 'devops',
+          })
+          .expectStatus(200);
+      });
+      it('should update a specilaity as an admin', () => {
+        return pactum
+          .spec()
+          .patch('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .withBody({
+            name: 'devops',
+          })
+          .expectStatus(200);
+      });
+    });
+    describe('Update a Speciality', () => {
+      it('should not update a specilaity as a user', () => {
+        return pactum
+          .spec()
+          .patch('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .withBody({
+            name: 'devops',
+          })
+          .expectStatus(403);
+      });
+      it('should update a specilaity as a manager', () => {
+        return pactum
+          .spec()
+          .patch('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .withBody({
+            name: 'devops',
+          })
+          .expectStatus(200);
+      });
+      it('should update a specilaity as an admin', () => {
+        return pactum
+          .spec()
+          .patch('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .withBody({
+            name: 'devops',
+          })
+          .expectStatus(200);
+      });
+    });
+
+    describe('Delete a Speciality', () => {
+      it('should not delete a specilaity as a user', () => {
+        return pactum
+          .spec()
+          .delete('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .expectStatus(403);
+      });
+      it('should delete a specilaity as a manager', () => {
+        return pactum
+          .spec()
+          .delete('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{managerAt}',
+          })
+          .withPathParams('id', '$S{specialityId}')
+          .expectStatus(200);
+      });
+      it('should delete a specilaity as an admin', () => {
+        return pactum
+          .spec()
+          .delete('/specialities/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withPathParams('id', '$S{specialityId2}')
+          .expectStatus(200);
+      });
+    });
+  });
+  describe('Concour', () => {
+    describe('create concour', () => {
+      beforeAll(() => {
+        pactum
+          .spec()
+          .post('/specialities')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withBody({
+            name: 'dev info',
+          })
+          .stores('specialityID', 'id');
+      });
+      it('should not create a concour as a user', () => {
+        return pactum
+          .spec()
+          .post('/concours')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withBody({
+            name: 'test concour',
+            description: 'test description <div>tesf</div>',
+            location: 'tanger',
+            specialities: [`$S{specialityID}`],
+          })
+          .expectStatus(403);
+      });
+      it('should create a concour as an admin', () => {
+        return pactum
+          .spec()
+          .post('/concours')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withBody({
+            name: 'test concour',
+            description: 'test description <div>tesf</div>',
+            location: 'tanger',
+            specialities: [`$S{specialityID}`],
           })
           .expectStatus(201)
           .inspect();
