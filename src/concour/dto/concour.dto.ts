@@ -1,8 +1,8 @@
 import {
-  ArrayNotEmpty,
-  IsArray,
+  IsBoolean,
   IsDateString,
   IsNotEmpty,
+  IsNumberString,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -19,11 +19,23 @@ export class ConcourDto {
   @IsString()
   @IsNotEmpty()
   description: string;
+
   @IsDateString()
-  @IsOptional()
+  @IsNotEmpty()
   closingDate: Date;
 
-  @IsArray()
-  @ArrayNotEmpty()
+  @IsDateString()
+  @IsNotEmpty()
+  concourDate: Date;
+
+  @IsBoolean()
+  @IsOptional()
+  closed: boolean;
+
+  @IsNumberString()
+  @IsNotEmpty()
+  positionsNumber: number;
+
+  @IsNotEmpty()
   specialities: string[];
 }

@@ -47,9 +47,13 @@ model Concour {
   createdAt         DateTime              @default(now())
   updateAt          DateTime              @updatedAt
   name              String
-  location          String?
   description       String
-  closingDate       DateTime?
+  location          String?
+  positionsNumber   Int
+  closingDate       DateTime
+  concourDate       DateTime
+  closed            Boolean               @default(false)
+  anounce           String
   candidatures      Candidature[]
   concourSpeciality ConcourToSpeciality[]
 

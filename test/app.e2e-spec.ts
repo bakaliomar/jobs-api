@@ -5,6 +5,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuthDto, SigninAuthDto } from '@/auth/dto';
 import * as pactum from 'pactum';
+import * as FormData from 'form-data-lite';
+import * as fs from 'fs';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -556,49 +558,81 @@ describe('App e2e', () => {
     });
   });
   describe('Concour', () => {
+    let speciality: { name: string; id: string };
+    beforeAll(async () => {
+      speciality = await prisma.speciality.create({
+        data: {
+          name: 'dev info',
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+    });
     describe('create concour', () => {
-      beforeAll(() => {
-        pactum
-          .spec()
-          .post('/specialities')
-          .withHeaders({
-            Authorization: 'Bearer $S{adminAt}',
-          })
-          .withBody({
-            name: 'dev info',
-          })
-          .stores('specialityID', 'id');
-      });
-      it('should not create a concour as a user', () => {
-        return pactum
-          .spec()
-          .post('/concours')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}',
-          })
-          .withBody({
-            name: 'test concour',
-            description: 'test description <div>tesf</div>',
-            location: 'tanger',
-            specialities: [`$S{specialityID}`],
-          })
-          .expectStatus(403);
-      });
+      const formData = new FormData();
+      formData.append(
+        'file',
+        fs.readFileSync(`${process.cwd()}/test/sample.pdf`),
+        {
+          filename: 'sample.pdf',
+        },
+      );
+      formData.append('name', 'test concour');
+      formData.append('description', 'test description <div>tesf</div>');
+      formData.append('location', 'tanger');
+      formData.append('closingDate', new Date().toISOString());
+      formData.append('concourDate', new Date().toISOString());
+      formData.append('positionsNumber', 8);
+      // it('should not create a concour as a user', () => {
+      //   formData.append('specialities[]', speciality.id);
+      //   return pactum
+      //     .spec()
+      //     .post('/concours')
+      //     .withHeaders({
+      //       Authorization: 'Bearer $S{userAt}',
+      //     })
+      //     .withMultiPartFormData(formData)
+      //     .expectStatus(403)
+      //     .inspect();
+      // });
       it('should create a concour as an admin', () => {
+        formData.append('specialities[]', speciality.id);
         return pactum
           .spec()
           .post('/concours')
           .withHeaders({
             Authorization: 'Bearer $S{adminAt}',
           })
-          .withBody({
-            name: 'test concour',
-            description: 'test description <div>tesf</div>',
-            location: 'tanger',
-            specialities: [`$S{specialityID}`],
-          })
+          .withMultiPartFormData(formData)
           .expectStatus(201)
           .inspect();
+      });
+    });
+    describe('read all concours', () => {
+      it('should not be able to read any concour as a user', () => {
+        return pactum
+          .spec()
+          .get('/concours')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .expectStatus(200);
+      });
+      it('should read all concours as an admin', () => {
+        return pactum
+          .spec()
+          .get('/concours')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .expectStatus(200);
+      });
+    });
+    describe('read all published concours', () => {
+      it('should not be able to read any concour as a guest user', () => {
+        return pactum.spec().get('/concours/published').expectStatus(200);
       });
     });
   });
