@@ -1,8 +1,11 @@
 import { PrismaService } from '@/prisma/prisma.service';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, StreamableFile } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { createReadStream, rm } from 'fs';
+import { join } from 'path';
 import { PaginateFunction } from 'prisma-pagination';
-import { ConcourDto } from './dto';
+import { ConcourDto, UpdateConcourDto } from './dto';
+import { omitBy, isUndefined } from 'lodash';
 
 @Injectable()
 export class ConcourService {
@@ -50,12 +53,12 @@ export class ConcourService {
   async findAllPublished(paginate: PaginateFunction) {
     const concours = await paginate(this.prisma.concour, {
       select: {
+        id: true,
         name: true,
         description: true,
         closingDate: true,
         concourDate: true,
         positionsNumber: true,
-        anounce: true,
         concourSpeciality: {
           select: {
             speciality: {
@@ -68,7 +71,7 @@ export class ConcourService {
         },
       },
       where: {
-        closed: true,
+        closed: false,
       },
     });
 
@@ -78,6 +81,7 @@ export class ConcourService {
   async findAll(paginate: PaginateFunction) {
     const concours = await paginate(this.prisma.concour, {
       select: {
+        id: true,
         name: true,
         description: true,
         closingDate: true,
@@ -97,5 +101,139 @@ export class ConcourService {
       },
     });
     return concours;
+  }
+
+  async getFile(id: string): Promise<StreamableFile> {
+    const concour = await this.prisma.concour.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        anounce: true,
+      },
+    });
+    const file = createReadStream(
+      join(process.cwd(), 'files', 'anounce', concour.anounce),
+    );
+    return new StreamableFile(file);
+  }
+
+  async findOne(id: string) {
+    const concour = await this.prisma.concour.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        closingDate: true,
+        concourDate: true,
+        positionsNumber: true,
+        anounce: true,
+        concourSpeciality: {
+          select: {
+            speciality: {
+              select: {
+                name: true,
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return concour;
+  }
+
+  async update(id: string, concour: UpdateConcourDto, name: string) {
+    try {
+      const data = {
+        name: concour.name,
+        description: concour.description,
+        location: concour.location || undefined,
+        closingDate: concour.closingDate
+          ? new Date(concour.closingDate)
+          : undefined,
+        concourDate: concour.concourDate
+          ? new Date(concour.concourDate)
+          : undefined,
+        positionsNumber: +concour.positionsNumber,
+        closed: !!concour.closed,
+        anounce: name ? name : undefined,
+      };
+
+      // remove file was sent in the request
+      if (!!name) {
+        const { anounce } = await this.prisma.concour.findUnique({
+          where: {
+            id,
+          },
+          select: {
+            anounce: true,
+          },
+        });
+        rm(
+          join(process.cwd(), 'files', 'anounce', anounce),
+          { recursive: true },
+          (err) => {
+            console.log(err);
+          },
+        );
+      }
+
+      const updatedConcour = await this.prisma.concour.update({
+        where: {
+          id,
+        },
+        data: {
+          ...omitBy(data, isUndefined),
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+
+      // delete all specialities
+      await this.prisma.concourToSpeciality.deleteMany({
+        where: {
+          concourId: id,
+        },
+      });
+
+      concour.specialities.forEach(async (specilaity: string) => {
+        await this.prisma.concourToSpeciality.create({
+          data: {
+            concourId: id,
+            specialityId: specilaity,
+          },
+        });
+      });
+
+      return updatedConcour;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2002')
+          throw new ForbiddenException(
+            `this ${error.meta.target} alread exist`,
+          );
+      }
+      throw error;
+    }
+  }
+
+  async remove(id: string) {
+    try {
+      await this.prisma.concour.delete({
+        where: {
+          id,
+        },
+      });
+      return { success: true };
+    } catch (error) {
+      throw error;
+    }
   }
 }
