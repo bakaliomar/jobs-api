@@ -594,8 +594,7 @@ describe('App e2e', () => {
       //       Authorization: 'Bearer $S{userAt}',
       //     })
       //     .withMultiPartFormData(formData)
-      //     .expectStatus(403)
-      //     .inspect();
+      //     .expectStatus(403);
       // });
       it('should create a concour as an admin', () => {
         formData.append('specialities[]', speciality.id);
@@ -607,7 +606,7 @@ describe('App e2e', () => {
           })
           .withMultiPartFormData(formData)
           .expectStatus(201)
-          .inspect();
+          .stores('concourId', 'id');
       });
     });
     describe('read all concours', () => {
@@ -616,9 +615,9 @@ describe('App e2e', () => {
           .spec()
           .get('/concours')
           .withHeaders({
-            Authorization: 'Bearer $S{adminAt}',
+            Authorization: 'Bearer $S{userAt}',
           })
-          .expectStatus(200);
+          .expectStatus(403);
       });
       it('should read all concours as an admin', () => {
         return pactum
@@ -631,8 +630,92 @@ describe('App e2e', () => {
       });
     });
     describe('read all published concours', () => {
-      it('should not be able to read any concour as a guest user', () => {
+      it('should be able to read any concour as a guest user', () => {
         return pactum.spec().get('/concours/published').expectStatus(200);
+      });
+    });
+    describe('get concour file', () => {
+      it('should  be able to get a concours file as guest user', () => {
+        return pactum
+          .spec()
+          .get('/concours/{id}/anounce')
+          .withPathParams('id', '$S{concourId}')
+          .expectStatus(200)
+          .inspect();
+      });
+    });
+    describe('read a concour', () => {
+      it('should not be able to read a concour as a user', () => {
+        return pactum
+          .spec()
+          .get('/concours/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withPathParams('id', '$S{concourId}')
+          .expectStatus(403);
+      });
+      it('should read a concour as an admin', () => {
+        return pactum
+          .spec()
+          .get('/concours/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withPathParams('id', '$S{concourId}')
+          .expectStatus(200);
+      });
+    });
+
+    describe('update concour', () => {
+      const formData = new FormData();
+      formData.append(
+        'file',
+        fs.readFileSync(`${process.cwd()}/test/sample.pdf`),
+        {
+          filename: 'sample.pdf',
+        },
+      );
+      formData.append('name', 'test concour');
+      formData.append('description', 'test description <div>tesf</div>');
+      formData.append('location', 'tanger');
+      formData.append('closingDate', new Date().toISOString());
+      formData.append('concourDate', new Date().toISOString());
+      formData.append('positionsNumber', 8);
+      it('should update a concour as an admin', () => {
+        formData.append('specialities[]', speciality.id);
+        return pactum
+          .spec()
+          .patch('/concours/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withPathParams('id', '$S{concourId}')
+          .withMultiPartFormData(formData)
+          .expectStatus(200);
+      });
+    });
+
+    describe('delete a concour', () => {
+      it('should not be able to delete a concour as a user', () => {
+        return pactum
+          .spec()
+          .delete('/concours/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withPathParams('id', '$S{concourId}')
+          .expectStatus(403);
+      });
+      it('should delete a concour as an admin', () => {
+        return pactum
+          .spec()
+          .delete('/concours/{id}')
+          .withHeaders({
+            Authorization: 'Bearer $S{adminAt}',
+          })
+          .withPathParams('id', '$S{concourId}')
+          .expectStatus(200);
       });
     });
   });

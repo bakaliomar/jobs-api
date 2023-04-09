@@ -39,3 +39,36 @@ export class ConcourDto {
   @IsNotEmpty()
   specialities: string[];
 }
+
+export class UpdateConcourDto {
+  @IsString()
+  @IsOptional()
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  location: string;
+
+  @IsString()
+  @IsOptional()
+  description: string;
+
+  @IsDateString()
+  @IsOptional()
+  closingDate: Date;
+
+  @IsDateString()
+  @IsOptional()
+  concourDate: Date;
+
+  @IsBoolean()
+  @IsOptional()
+  closed: boolean;
+
+  @IsNumberString()
+  @IsOptional()
+  positionsNumber: number;
+
+  @IsOptional()
+  specialities: string[];
+}
