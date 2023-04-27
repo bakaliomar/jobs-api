@@ -1,3 +1,4 @@
+import { Public } from '@/auth/decorator';
 import { GetPaginate } from '@/prisma/decorator/get-paginate';
 import {
   Body,
@@ -7,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UseRoles } from 'nest-access-control';
 import { PaginateFunction } from 'prisma-pagination';
@@ -35,6 +37,12 @@ export class SpecialityController {
   @Get()
   findAll(@GetPaginate() paginate: PaginateFunction) {
     return this.specialityService.findAll(paginate);
+  }
+
+  @Public()
+  @Get('/autocomplete')
+  autocomplere(@Query('name') name: string) {
+    return this.specialityService.autocomplete(name);
   }
 
   @UseRoles({

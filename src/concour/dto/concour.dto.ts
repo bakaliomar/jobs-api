@@ -1,5 +1,5 @@
 import {
-  IsBoolean,
+  IsBooleanString,
   IsDateString,
   IsNotEmpty,
   IsNumberString,
@@ -28,7 +28,7 @@ export class ConcourDto {
   @IsNotEmpty()
   concourDate: Date;
 
-  @IsBoolean()
+  @IsBooleanString()
   @IsOptional()
   closed: boolean;
 
@@ -61,7 +61,7 @@ export class UpdateConcourDto {
   @IsOptional()
   concourDate: Date;
 
-  @IsBoolean()
+  @IsBooleanString()
   @IsOptional()
   closed: boolean;
 
