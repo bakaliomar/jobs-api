@@ -49,6 +49,18 @@ export class SpecialityService {
     }
   }
 
+  async autocomplete(name: string) {
+    return await this.prisma.speciality.findMany({
+      where: {
+        ...(name ? { name } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
+
   async findOne(id: string) {
     const speciality = await this.prisma.speciality.findUnique({
       where: {

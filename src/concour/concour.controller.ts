@@ -9,6 +9,7 @@ import {
   ParseFilePipe,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -38,7 +39,7 @@ export class ConcourController {
         filename: (req, file, cb) => {
           const fileSplit = file.originalname.split('.');
           const fileExt = fileSplit[fileSplit.length - 1];
-          cb(null, `${file.fieldname}_${Date.now()}.${fileExt}`);
+          cb(null, `${fileSplit[0]}_${Date.now()}.${fileExt}`);
         },
       }),
     }),
@@ -55,7 +56,6 @@ export class ConcourController {
     file: Express.Multer.File,
     @Body() concour: ConcourDto,
   ) {
-    console.log(concour);
     return this.concourService.create(concour, file.filename);
   }
 
@@ -63,6 +63,18 @@ export class ConcourController {
   @Get('/published')
   findAllPublished(@GetPaginate() paginate: PaginateFunction) {
     return this.concourService.findAllPublished(paginate);
+  }
+
+  @Public()
+  @Get('/autocomplete')
+  autocomplere(@Query('name') name: string) {
+    return this.concourService.autocomplete(name);
+  }
+
+  @Public()
+  @Get('/:id/specialities')
+  getSpecialities(@Param('id') id: string) {
+    return this.concourService.getSpecialities(id);
   }
 
   @UseRoles({
@@ -110,17 +122,18 @@ export class ConcourController {
     }),
   )
   update(
+    @Param('id') id: string,
+    @Body() concour: UpdateConcourDto,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 1000 * 4 }),
           new FileTypeValidator({ fileType: 'pdf' }),
         ],
+        fileIsRequired: false,
       }),
     )
-    file: Express.Multer.File,
-    @Param('id') id: string,
-    @Body() concour: UpdateConcourDto,
+    file?: Express.Multer.File,
   ) {
     return this.concourService.update(id, concour, file?.filename);
   }

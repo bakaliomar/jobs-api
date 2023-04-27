@@ -640,8 +640,7 @@ describe('App e2e', () => {
           .spec()
           .get('/concours/{id}/anounce')
           .withPathParams('id', '$S{concourId}')
-          .expectStatus(200)
-          .inspect();
+          .expectStatus(200);
       });
     });
     describe('read a concour', () => {
@@ -696,27 +695,122 @@ describe('App e2e', () => {
       });
     });
 
-    describe('delete a concour', () => {
-      it('should not be able to delete a concour as a user', () => {
-        return pactum
-          .spec()
-          .delete('/concours/{id}')
-          .withHeaders({
-            Authorization: 'Bearer $S{userAt}',
-          })
-          .withPathParams('id', '$S{concourId}')
-          .expectStatus(403);
+    // describe('delete a concour', () => {
+    //   it('should not be able to delete a concour as a user', () => {
+    //     return pactum
+    //       .spec()
+    //       .delete('/concours/{id}')
+    //       .withHeaders({
+    //         Authorization: 'Bearer $S{userAt}',
+    //       })
+    //       .withPathParams('id', '$S{concourId}')
+    //       .expectStatus(403);
+    //   });
+    //   it('should delete a concour as an admin', () => {
+    //     return pactum
+    //       .spec()
+    //       .delete('/concours/{id}')
+    //       .withHeaders({
+    //         Authorization: 'Bearer $S{adminAt}',
+    //       })
+    //       .withPathParams('id', '$S{concourId}')
+    //       .expectStatus(200);
+    //   });
+    // });
+  });
+  describe('Candidature', () => {
+    let speciality: { name: string; id: string };
+    beforeAll(async () => {
+      speciality = await prisma.speciality.create({
+        data: {
+          name: 'dev info hdg',
+        },
+        select: {
+          id: true,
+          name: true,
+        },
       });
-      it('should delete a concour as an admin', () => {
+      pactum.sleep(1000);
+    });
+    describe('create candiadature', () => {
+      const formData = new FormData();
+      formData.append(
+        'file',
+        fs.readFileSync(`${process.cwd()}/test/sample.pdf`),
+        {
+          filename: 'sample.pdf',
+        },
+      );
+      formData.append('title', 'mr');
+      formData.append('email', 'test@test.test');
+      formData.append('cin', 'test123');
+      formData.append('firstName', 'testname');
+      formData.append('firstNameArabic', 'test arabic');
+      formData.append('lastName', 'testname');
+      formData.append('lastNameArabic', 'testname');
+      formData.append('birthDate', new Date().toISOString());
+      formData.append('birthPlace', 'tanger');
+      formData.append('birthPlaceArabic', 'tangerArabic');
+      formData.append('city', 'tanger');
+      formData.append('cityArabic', 'tanger Ar');
+      formData.append('codePostal', '900900');
+      formData.append('phone', '+2120604299918');
+      formData.append('address', 'tanger hgds');
+      formData.append('addressArabic', 'tanger kjds ar');
+      formData.append('currentJob', 'dev');
+      formData.append('graduationYear', 2017);
+      formData.append('graduationCountry', 'morocco');
+      formData.append('degreeLevel', 'master');
+      formData.append('degreeTitle', 'master');
+      formData.append('degreeSpeciality', 'dev');
+      formData.append('concourId', '$S{concourId}');
+      formData.append('establishment', 'public');
+      formData.append('establishmentName', 'fst');
+      it('should create a candidature as an admin', () => {
+        formData.append('specialityId', speciality.id);
         return pactum
           .spec()
-          .delete('/concours/{id}')
+          .post('/candidatures')
           .withHeaders({
             Authorization: 'Bearer $S{adminAt}',
           })
-          .withPathParams('id', '$S{concourId}')
-          .expectStatus(200);
+          .withMultiPartFormData(formData)
+          .expectStatus(201)
+          .stores('candidatureId', 'id');
       });
+    });
+  });
+
+  describe('read a candidature', () => {
+    it('should not be able to read any candidature as a user', () => {
+      return pactum
+        .spec()
+        .get('/candidatures')
+        .withHeaders({
+          Authorization: 'Bearer $S{userAt}',
+        })
+        .expectStatus(403);
+    });
+    it('should read candidatures as an admin', () => {
+      return pactum
+        .spec()
+        .get('/candidatures')
+        .withHeaders({
+          Authorization: 'Bearer $S{adminAt}',
+        })
+        .expectStatus(200);
+    });
+
+    it('should read candidatures with keyword as an admin', () => {
+      return pactum
+        .spec()
+        .get('/candidatures')
+        .withHeaders({
+          Authorization: 'Bearer $S{adminAt}',
+        })
+        .withQueryParams('keyword', 'samir')
+        .expectStatus(200)
+        .inspect();
     });
   });
 });

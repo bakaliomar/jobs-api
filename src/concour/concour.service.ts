@@ -78,6 +78,34 @@ export class ConcourService {
     return concours;
   }
 
+  async autocomplete(name: string) {
+    return await this.prisma.concour.findMany({
+      where: {
+        ...(name ? { name } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
+
+  async getSpecialities(id: string) {
+    return await this.prisma.speciality.findMany({
+      where: {
+        concourSpeciality: {
+          some: {
+            concourId: id,
+          },
+        },
+      },
+      select: {
+        name: true,
+        id: true,
+      },
+    });
+  }
+
   async findAll(paginate: PaginateFunction) {
     const concours = await paginate(this.prisma.concour, {
       select: {
@@ -88,6 +116,7 @@ export class ConcourService {
         concourDate: true,
         positionsNumber: true,
         anounce: true,
+        closed: true,
         concourSpeciality: {
           select: {
             speciality: {

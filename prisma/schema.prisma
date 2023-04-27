@@ -16,7 +16,7 @@ model User {
   updateAt         DateTime      @updatedAt
   email            String        @unique
   userName         String?       @unique
-  password         String
+  password         String?
   hashedRt         String?
   firstName        String
   lastName         String
@@ -25,10 +25,11 @@ model User {
   phone            String?       @unique
   firstNameArabic  String?
   lastNameArabic   String?
-  birthDate        String?
+  birthDate        DateTime?
   birthPlace       String?
   birthPlaceArabic String?
   address          String?
+  addressArabic    String?
   city             String?
   cityArabic       String?
   codePostal       String?
@@ -47,7 +48,7 @@ model Concour {
   createdAt         DateTime              @default(now())
   updateAt          DateTime              @updatedAt
   name              String
-  description       String
+  description       String?
   location          String?
   positionsNumber   Int
   closingDate       DateTime
@@ -73,27 +74,29 @@ model ConcourToSpeciality {
 }
 
 model Candidature {
-  createdAt         DateTime   @default(now())
-  updateAt          DateTime   @updatedAt
+  id                String           @id @default(uuid()) @db.Uuid
+  createdAt         DateTime         @default(now())
+  updateAt          DateTime         @updatedAt
   currentJob        String?
-  graduationYear    DateTime
+  graduationYear    Int
   graduationCountry String
   establishment     String
   establishmentName String
   degreeLevel       String
   degreeSpeciality  String
   degreeTitle       String
-  state             String
+  state             CandidatureState @default(UNTREATED)
+  motive            String?
   isArchived        Boolean
   dossierLink       String
-  concourId         String     @db.Uuid
-  userId            String     @db.Uuid
-  specialityId      String     @db.Uuid
-  concour           Concour    @relation(fields: [concourId], references: [id], onDelete: Cascade)
-  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  speciality        Speciality @relation(fields: [specialityId], references: [id], onDelete: Cascade)
+  concourId         String           @db.Uuid
+  userId            String           @db.Uuid
+  specialityId      String           @db.Uuid
+  concour           Concour          @relation(fields: [concourId], references: [id], onDelete: Cascade)
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  speciality        Speciality       @relation(fields: [specialityId], references: [id], onDelete: Cascade)
 
-  @@id([concourId, userId, specialityId])
+  @@unique([userId, specialityId, concourId], name: "candidatureIdentifier")
   @@index([concourId], name: "cnd_cnc_id_idx")
   @@index([establishment], name: "cnd_etbl_idx")
   @@map("candidatures")
@@ -114,4 +117,11 @@ enum Role {
   USER
   MANAGER
   ADMIN
+}
+
+enum CandidatureState {
+  UNTREATED
+  SHORTLISTED
+  REFUSED
+  ADMITTED
 }
