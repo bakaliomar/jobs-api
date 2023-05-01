@@ -21,7 +21,7 @@ export class ConcourService {
           closingDate: new Date(concour.closingDate),
           concourDate: new Date(concour.concourDate),
           positionsNumber: +concour.positionsNumber,
-          closed: !!concour.closed,
+          closed: concour.closed == true,
           anounce: name,
         },
         select: {
@@ -82,6 +82,7 @@ export class ConcourService {
     return await this.prisma.concour.findMany({
       where: {
         ...(name ? { name } : {}),
+        closed: false,
       },
       select: {
         id: true,
@@ -160,6 +161,7 @@ export class ConcourService {
         concourDate: true,
         positionsNumber: true,
         anounce: true,
+        closed: true,
         concourSpeciality: {
           select: {
             speciality: {
@@ -189,7 +191,7 @@ export class ConcourService {
           ? new Date(concour.concourDate)
           : undefined,
         positionsNumber: +concour.positionsNumber,
-        closed: !!concour.closed,
+        closed: concour.closed == true,
         anounce: name ? name : undefined,
       };
 
