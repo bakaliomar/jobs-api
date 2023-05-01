@@ -4,7 +4,9 @@ import {
   FileTypeValidator,
   Get,
   MaxFileSizeValidator,
+  Param,
   ParseFilePipe,
+  Patch,
   Post,
   Query,
   UploadedFile,
@@ -12,16 +14,17 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UseRoles } from 'nest-access-control';
-import { CandidatureService } from './candidature.service';
 import { diskStorage } from 'multer';
 import { CandidatureDto } from './dto';
+import { CandidatureService } from './candidature.service';
 import { Public } from '@/auth/decorator';
 import { GetPaginate } from '@/prisma/decorator/get-paginate';
 import { PaginateFunction } from 'prisma-pagination';
+import { CandidatureState } from '@prisma/client';
 
 @Controller('candidatures')
 export class CandidatureController {
-  constructor(private CandidatureService: CandidatureService) {}
+  constructor(private candidatureService: CandidatureService) {}
 
   @Public()
   @Post()
@@ -49,7 +52,7 @@ export class CandidatureController {
     file: Express.Multer.File,
     @Body() candidature: CandidatureDto,
   ) {
-    return this.CandidatureService.create(candidature, file.filename);
+    return this.candidatureService.create(candidature, file.filename);
   }
 
   @UseRoles({
@@ -63,12 +66,46 @@ export class CandidatureController {
     @Query('concour') concour: string,
     @Query('speciality') speciality: string,
     @Query('keyword') keyword: string,
+    @Query('state') state: string,
+    @Query('archived') archived: string,
   ) {
-    return this.CandidatureService.findAll(
+    return this.candidatureService.findAll(
       paginate,
       concour,
       speciality,
       keyword,
+      state,
+      archived == 'true',
     );
+  }
+
+  @UseRoles({
+    resource: 'candidateurs',
+    action: 'read',
+    possession: 'any',
+  })
+  @Get('/:id')
+  findOne(@Param('id') id: string) {
+    return this.candidatureService.findOne(id);
+  }
+
+  @UseRoles({
+    resource: 'candidateurs',
+    action: 'read',
+    possession: 'any',
+  })
+  @Get('/:id/dossier')
+  getFile(@Param('id') id: string) {
+    return this.candidatureService.getFile(id);
+  }
+
+  @UseRoles({
+    resource: 'candidateurs',
+    action: 'update',
+    possession: 'any',
+  })
+  @Patch(':id/toggle')
+  toggleState(@Param('id') id: string, @Body('state') state: CandidatureState) {
+    return this.candidatureService.toggleState(id, state);
   }
 }
