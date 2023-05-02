@@ -108,6 +108,7 @@ export class CandidatureService {
         createdAt: true,
         establishment: true,
         isArchived: true,
+        state: true,
         user: {
           select: {
             id: true,
