@@ -17,6 +17,7 @@ export class SpecialityService {
       const createdSpeciality = await this.prisma.speciality.create({
         data: {
           name: speciality.name,
+          nameArabic: speciality.nameArabic,
         },
         select: {
           name: true,
@@ -40,6 +41,7 @@ export class SpecialityService {
       const specialities = await paginate(this.prisma.speciality, {
         select: {
           name: true,
+          nameArabic: true,
           id: true,
         },
       });
@@ -84,6 +86,7 @@ export class SpecialityService {
         },
         data: {
           name: speciality.name,
+          nameArabic: speciality.nameArabic,
         },
       });
       return { success: true };

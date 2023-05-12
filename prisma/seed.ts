@@ -32,8 +32,6 @@ async function main() {
       roles: 'ADMIN',
     },
   });
-
-  console.log(user1, user2);
 }
 
 // execute the main function

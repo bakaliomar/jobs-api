@@ -1,14 +1,17 @@
 import {
   Body,
   Controller,
+  Delete,
   FileTypeValidator,
   Get,
+  Header,
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
   Patch,
   Post,
   Query,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,6 +24,7 @@ import { Public } from '@/auth/decorator';
 import { GetPaginate } from '@/prisma/decorator/get-paginate';
 import { PaginateFunction } from 'prisma-pagination';
 import { CandidatureState } from '@prisma/client';
+import { Response } from 'express';
 
 @Controller('candidatures')
 export class CandidatureController {
@@ -105,7 +109,43 @@ export class CandidatureController {
     possession: 'any',
   })
   @Patch(':id/toggle')
-  toggleState(@Param('id') id: string, @Body('state') state: CandidatureState) {
-    return this.candidatureService.toggleState(id, state);
+  toggleState(
+    @Param('id') id: string,
+    @Body('state') state: CandidatureState,
+    @Body('motive') motive?: string,
+  ) {
+    return this.candidatureService.toggleState(id, state, motive);
+  }
+
+  @UseRoles({
+    resource: 'candidateurs',
+    action: 'delete',
+    possession: 'any',
+  })
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.candidatureService.remove(id);
+  }
+
+  @UseRoles({
+    resource: 'candidateurs',
+    action: 'read',
+    possession: 'any',
+  })
+  @Get('/excel/download')
+  exportExcel(
+    @Query('concour') concour?: string,
+    @Query('speciality') speciality?: string,
+    @Query('keyword') keyword?: string,
+    @Query('state') state?: string,
+    @Query('archived') archived?: string,
+  ) {
+    return this.candidatureService.exportExcel(
+      concour,
+      speciality,
+      keyword,
+      state,
+      archived == 'true',
+    );
   }
 }
