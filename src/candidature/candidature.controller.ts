@@ -48,7 +48,7 @@ export class CandidatureController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1000 * 5 }),
+          new MaxFileSizeValidator({ maxSize: 1000* 1000  * 5 }),
           new FileTypeValidator({ fileType: 'pdf' }),
         ],
       }),
