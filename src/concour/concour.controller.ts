@@ -12,6 +12,7 @@ import {
   Query,
   UploadedFile,
   UseInterceptors,
+  Header,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UseRoles } from 'nest-access-control';
@@ -48,7 +49,7 @@ export class ConcourController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1000 * 4 }),
+          new MaxFileSizeValidator({ maxSize: 1000 * 1000  * 8 }),
           new FileTypeValidator({ fileType: 'pdf' }),
         ],
       }),
@@ -89,6 +90,8 @@ export class ConcourController {
 
   @Public()
   @Get('/:id/anounce')
+  @Header('Content-Type', 'application/pdf')
+  @Header('Content-Disposition', 'attachment; filename=anounce.pdf')
   getFile(@Param('id') id: string) {
     return this.concourService.getFile(id);
   }
@@ -127,7 +130,7 @@ export class ConcourController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1000 * 4 }),
+          new MaxFileSizeValidator({ maxSize: 1000 * 1000  * 8 }),
           new FileTypeValidator({ fileType: 'pdf' }),
         ],
         fileIsRequired: false,

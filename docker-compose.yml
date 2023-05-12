@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: 1234
       POSTGRES_DB: nest
     networks:
-      - freecodecamp
+      - netconn
   test-db:
     image: postgres:13
     ports:
@@ -19,6 +19,21 @@ services:
       POSTGRES_PASSWORD: 1234
       POSTGRES_DB: nest
     networks:
-      - freecodecamp
+      - netconn
+  prod-db:
+    image: postgres:13
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_USER: chuser
+      POSTGRES_PASSWORD: chutangermed6
+      POSTGRES_DB: emploi
+    networks:
+      - netconn 
+    volumes:
+      - myapp:/home/node/app
+
 networks:
-  freecodecamp:
+ netconn:
+volumes:
+  myapp:
