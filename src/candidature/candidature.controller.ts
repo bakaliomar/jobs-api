@@ -4,14 +4,12 @@ import {
   Delete,
   FileTypeValidator,
   Get,
-  Header,
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
   Patch,
   Post,
   Query,
-  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -48,7 +46,7 @@ export class CandidatureController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1000* 1000  * 5 }),
+          new MaxFileSizeValidator({ maxSize: 1000 * 1000 * 5 }),
           new FileTypeValidator({ fileType: 'pdf' }),
         ],
       }),

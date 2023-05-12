@@ -11,7 +11,7 @@ export enum AppRoles {
 RBAC_POLICY.grant(AppRoles.USER)
   .readOwn('candidateurs')
   .createOwn('candidateurs')
-  .updateOwn('candidateur')
+  .updateOwn('candidateurs')
   .grant(AppRoles.MANAGER)
   .extend(AppRoles.USER)
   .create(['concours', 'specialities'])
