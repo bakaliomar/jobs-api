@@ -1,11 +1,19 @@
 import { PrismaService } from '@/prisma/prisma.service';
-import { ForbiddenException, Injectable, StreamableFile } from '@nestjs/common';
+import {
+  ForbiddenException,
+  BadRequestException,
+  Injectable,
+  StreamableFile,
+  NotFoundException,
+} from '@nestjs/common';
 import { CandidatureState } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { createReadStream } from 'fs';
 import { join } from 'path';
 import { PaginateFunction } from 'prisma-pagination';
 import { CandidatureDto } from './dto';
+import { Workbook } from 'exceljs';
+import * as tmp from 'tmp';
 
 @Injectable()
 export class CandidatureService {
@@ -206,14 +214,15 @@ export class CandidatureService {
     return new StreamableFile(file);
   }
 
-  async toggleState(id: string, state: CandidatureState) {
+  async toggleState(id: string, state: CandidatureState, motive?: string) {
     try {
       const candidature = await this.prisma.candidature.update({
         where: {
           id,
         },
         data: {
-          state: state,
+          state,
+          motive,
         },
         select: {
           state: true,
@@ -230,6 +239,129 @@ export class CandidatureService {
       }
       throw error;
     }
+  }
+
+  async remove(id: string) {
+    this.prisma.candidature.delete({
+      where: {
+        id,
+      },
+    });
+    return { success: true };
+  }
+
+  async exportExcel(
+    concour?: string,
+    speciality?: string,
+    keyword?: string,
+    state?: string,
+    archived?: boolean,
+  ) {
+    const candidatures = await this.getCandidatures(
+      concour,
+      speciality,
+      keyword,
+      state,
+      archived,
+    );
+
+    console.log(candidatures);
+    if (!candidatures) {
+      throw new NotFoundException('No Data to Download');
+    }
+
+    const rows = [];
+
+    candidatures.forEach((doc) => {
+      rows.push(Object.values(doc));
+    });
+
+    // creating a workbook
+    const book = new Workbook();
+    // adding sheet
+    const sheet = book.addWorksheet('candidatures');
+    // adding headers
+    rows.unshift(Object.keys(candidatures));
+
+    await sheet.addRows(rows);
+    tmp.file(
+      {
+        discardDiscreptor: true,
+        prefix: 'MyExcelSheet',
+        postfix: '.xlsx',
+        mode: parseInt('0600', 8),
+      },
+      async (err, path, file) => {
+        if (err) {
+          throw new BadRequestException(err);
+        }
+
+        // writting the temporary file
+        await book.xlsx.writeFile(file);
+        const fl = createReadStream(path);
+        return new StreamableFile(fl);
+      },
+    );
+  }
+
+  async getCandidatures(
+    concour?: string,
+    speciality?: string,
+    keyword?: string,
+    state?: string,
+    archived?: boolean,
+  ) {
+    const candiadatures = await this.prisma.candidature.findMany({
+      where: {
+        ...(concour ? { concourId: concour } : {}),
+        ...(speciality ? { specialityId: speciality } : {}),
+        ...(state ? { state } : {}),
+        ...(archived ? { isArchived: archived } : {}),
+        ...(keyword
+          ? {
+              user: {
+                OR: [
+                  { firstName: { contains: keyword } },
+                  { lastName: { contains: keyword } },
+                  { cin: { contains: keyword } },
+                ],
+              },
+            }
+          : {}),
+        // eslint-disable-next-line @typescript-eslint/ban-types
+      } as Object,
+      select: {
+        id: true,
+        createdAt: true,
+        establishment: true,
+        isArchived: true,
+        state: true,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            title: true,
+            cin: true,
+          },
+        },
+        speciality: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        concour: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return candiadatures;
   }
 
   async createUser(candidature: CandidatureDto) {

@@ -107,6 +107,7 @@ model Speciality {
   createdAt         DateTime              @default(now())
   updateAt          DateTime              @updatedAt
   name              String                @unique
+  nameArabic        String                @unique
   concourSpeciality ConcourToSpeciality[]
   Candidature       Candidature[]
 

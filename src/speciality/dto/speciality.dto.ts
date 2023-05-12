@@ -4,4 +4,8 @@ export class SpecialityDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  nameArabic: string;
 }

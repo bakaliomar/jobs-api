@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   HttpCode,
   HttpStatus,
   Post,
@@ -33,7 +34,7 @@ export class AuthController {
   }
 
   // POST /auth/logout
-  @Post('logout')
+  @Delete('logout')
   @HttpCode(HttpStatus.OK)
   logout(@GetUser('id') userId: string) {
     return this.authService.logout(userId);
