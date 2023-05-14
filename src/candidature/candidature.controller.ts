@@ -22,7 +22,6 @@ import { Public } from '@/auth/decorator';
 import { GetPaginate } from '@/prisma/decorator/get-paginate';
 import { PaginateFunction } from 'prisma-pagination';
 import { CandidatureState } from '@prisma/client';
-import { Response } from 'express';
 
 @Controller('candidatures')
 export class CandidatureController {
