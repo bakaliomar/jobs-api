@@ -49,7 +49,7 @@ export class ConcourController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1000 * 1000  * 8 }),
+          new MaxFileSizeValidator({ maxSize: 1000 * 1000 * 8 }),
           new FileTypeValidator({ fileType: 'pdf' }),
         ],
       }),
@@ -130,7 +130,7 @@ export class ConcourController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 1000 * 1000  * 8 }),
+          new MaxFileSizeValidator({ maxSize: 1000 * 1000 * 8 }),
           new FileTypeValidator({ fileType: 'pdf' }),
         ],
         fileIsRequired: false,
