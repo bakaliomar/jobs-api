@@ -24,7 +24,7 @@ export class AuthService {
     //if user doesn't exist throw exception
     if (!user) throw new ForbiddenException('credentials is incorrect');
     //compare the password
-    const pwMatches = argon.verify(user.password, dto.password);
+    const pwMatches = await argon.verify(user.password, dto.password);
     //if password is incorrect throw exception
     if (!pwMatches) throw new ForbiddenException('credentials is incorrect');
 
