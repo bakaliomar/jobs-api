@@ -257,6 +257,21 @@ export class ConcourService {
 
   async remove(id: string) {
     try {
+      const { anounce } = await this.prisma.concour.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          anounce: true,
+        },
+      });
+      rm(
+        join(process.cwd(), 'files', 'anounce', anounce),
+        { recursive: true },
+        (err) => {
+          console.log(err);
+        },
+      );
       await this.prisma.concour.delete({
         where: {
           id,
