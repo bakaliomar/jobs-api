@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -22,6 +23,7 @@ import { Public } from '@/auth/decorator';
 import { GetPaginate } from '@/prisma/decorator/get-paginate';
 import { PaginateFunction } from 'prisma-pagination';
 import { CandidatureState } from '@prisma/client';
+import { Response } from 'express';
 
 @Controller('candidatures')
 export class CandidatureController {
@@ -131,13 +133,15 @@ export class CandidatureController {
   })
   @Get('/excel/download')
   exportExcel(
+    @Res() res: Response,
     @Query('concour') concour?: string,
     @Query('speciality') speciality?: string,
     @Query('keyword') keyword?: string,
     @Query('state') state?: string,
     @Query('archived') archived?: string,
   ) {
-    return this.candidatureService.exportExcel(
+    this.candidatureService.exportExcel(
+      res,
       concour,
       speciality,
       keyword,

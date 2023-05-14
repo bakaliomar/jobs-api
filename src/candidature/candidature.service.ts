@@ -1,19 +1,18 @@
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   ForbiddenException,
-  BadRequestException,
   Injectable,
   StreamableFile,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { CandidatureState } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { createReadStream } from 'fs';
+import { createReadStream, rm } from 'fs';
 import { join } from 'path';
 import { PaginateFunction } from 'prisma-pagination';
 import { CandidatureDto } from './dto';
-import { Workbook } from 'exceljs';
-import * as tmp from 'tmp';
+import { Response } from 'express';
 
 @Injectable()
 export class CandidatureService {
@@ -242,66 +241,82 @@ export class CandidatureService {
   }
 
   async remove(id: string) {
-    this.prisma.candidature.delete({
-      where: {
-        id,
-      },
-    });
-    return { success: true };
+    try {
+      const { dossierLink } = await this.prisma.candidature.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          dossierLink: true,
+        },
+      });
+      rm(
+        join(process.cwd(), 'files', 'anounce', dossierLink),
+        { recursive: true },
+        (err) => {
+          console.log(err);
+        },
+      );
+      await this.prisma.candidature.delete({
+        where: {
+          id,
+        },
+      });
+      return { success: true };
+    } catch (err) {
+      throw new BadRequestException('error while deleting');
+    }
   }
 
   async exportExcel(
+    res: Response,
     concour?: string,
     speciality?: string,
     keyword?: string,
     state?: string,
     archived?: boolean,
   ) {
-    const candidatures = await this.getCandidatures(
-      concour,
-      speciality,
-      keyword,
-      state,
-      archived,
-    );
+    try {
+      const candidatures = await this.getCandidatures(
+        concour,
+        speciality,
+        keyword,
+        state,
+        archived,
+      );
 
-    console.log(candidatures);
-    if (!candidatures) {
-      throw new NotFoundException('No Data to Download');
+      if (!candidatures) {
+        throw new NotFoundException('No Data to Download');
+      }
+
+      const columns = [
+        'id',
+        'date',
+        'etablisment',
+        'archived',
+        'satatus',
+        'prenom',
+        'nom',
+        'email',
+        'titre',
+        'cin',
+        'specialite',
+        'concour',
+      ];
+
+      //this statement tells the browser what type of data is supposed to download and force it to download
+      res.writeHead(200, {
+        'Content-Type': 'text/csv',
+        'Content-Disposition': 'attachment; filename=data.csv',
+      });
+      // whereas this part is in charge of telling what data should be parsed and be downloaded
+      console.log(this.dataToCSV(candidatures, columns));
+      res.end(this.dataToCSV(candidatures, columns), 'binary');
+
+      console.log('Finished writing data');
+    } catch (err) {
+      throw new BadRequestException(err);
     }
-
-    const rows = [];
-
-    candidatures.forEach((doc) => {
-      rows.push(Object.values(doc));
-    });
-
-    // creating a workbook
-    const book = new Workbook();
-    // adding sheet
-    const sheet = book.addWorksheet('candidatures');
-    // adding headers
-    rows.unshift(Object.keys(candidatures));
-
-    await sheet.addRows(rows);
-    tmp.file(
-      {
-        discardDiscreptor: true,
-        prefix: 'MyExcelSheet',
-        postfix: '.xlsx',
-        mode: parseInt('0600', 8),
-      },
-      async (err, path, file) => {
-        if (err) {
-          throw new BadRequestException(err);
-        }
-
-        // writting the temporary file
-        await book.xlsx.writeFile(file);
-        const fl = createReadStream(path);
-        return new StreamableFile(fl);
-      },
-    );
   }
 
   async getCandidatures(
@@ -362,6 +377,45 @@ export class CandidatureService {
     });
 
     return candiadatures;
+  }
+
+  dataToCSV(dataList, headers) {
+    const allObjects = [];
+    // Pushing the headers, as the first arr in the 2-dimensional array 'allObjects' would be the first row
+    allObjects.push(headers);
+
+    //Now iterating through the list and build up an array that contains the data of every object in the list, in the same order of the headers
+    dataList.forEach(function (object) {
+      const arr = [];
+      arr.push(object.id);
+      arr.push((object.createdAt as Date).toISOString());
+      arr.push(object.establishment);
+      arr.push(object.isArchived);
+      arr.push(object.state);
+      arr.push(object.user.firstName);
+      arr.push(object.user.lastName);
+      arr.push(object.user.email);
+      arr.push(object.user.title);
+      arr.push(object.user.cin);
+      arr.push(object.speciality.name);
+      arr.push(object.concour.name);
+
+      // Adding the array as additional element to the 2-dimensional array. It will evantually be converted to a single row
+      allObjects.push(arr);
+    });
+
+    // Initializing the output in a new variable 'csvContent'
+    let csvContent = '';
+
+    // The code below takes two-dimensional array and converts it to be strctured as CSV
+    // *** It can be taken apart from the function, if all you need is to convert an array to CSV
+    allObjects.forEach(function (infoArray, index) {
+      const dataString = infoArray.join(',');
+      csvContent += index < allObjects.length ? dataString + '\n' : dataString;
+    });
+
+    // Returning the CSV output
+    return csvContent;
   }
 
   async createUser(candidature: CandidatureDto) {
