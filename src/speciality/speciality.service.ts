@@ -5,8 +5,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { PaginateFunction } from 'prisma-pagination';
+import { createPaginator } from 'prisma-pagination';
 import { SpecialityDto } from './dto';
+import { Speciality, Prisma } from '@prisma/client';
 
 @Injectable()
 export class SpecialityService {
@@ -36,15 +37,23 @@ export class SpecialityService {
     }
   }
 
-  async findAll(paginate: PaginateFunction) {
+  async findAll(page: number, perPage: number) {
     try {
-      const specialities = await paginate(this.prisma.speciality, {
-        select: {
-          name: true,
-          nameArabic: true,
-          id: true,
+      const paginate = createPaginator({ perPage });
+      const specialities = await paginate<
+        Speciality,
+        Prisma.SpecialityFindManyArgs
+      >(
+        this.prisma.speciality,
+        {
+          select: {
+            name: true,
+            nameArabic: true,
+            id: true,
+          },
         },
-      });
+        { page },
+      );
       return specialities;
     } catch (error) {
       throw error;

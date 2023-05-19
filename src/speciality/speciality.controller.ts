@@ -1,5 +1,4 @@
 import { Public } from '@/auth/decorator';
-import { GetPaginate } from '@/prisma/decorator/get-paginate';
 import {
   Body,
   Controller,
@@ -11,7 +10,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { UseRoles } from 'nest-access-control';
-import { PaginateFunction } from 'prisma-pagination';
 import { SpecialityDto } from './dto';
 import { SpecialityService } from './speciality.service';
 
@@ -35,8 +33,8 @@ export class SpecialityController {
     possession: 'any',
   })
   @Get()
-  findAll(@GetPaginate() paginate: PaginateFunction) {
-    return this.specialityService.findAll(paginate);
+  findAll(@Query('page') page: number, @Query('perPage') perPage = 10) {
+    return this.specialityService.findAll(page, perPage);
   }
 
   @Public()

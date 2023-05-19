@@ -3,9 +3,10 @@ import { ForbiddenException, Injectable, StreamableFile } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { createReadStream, rm } from 'fs';
 import { join } from 'path';
-import { PaginateFunction } from 'prisma-pagination';
+import { createPaginator } from 'prisma-pagination';
 import { ConcourDto, UpdateConcourDto } from './dto';
 import { omitBy, isUndefined } from 'lodash';
+import { Concour, Prisma } from '@prisma/client';
 
 @Injectable()
 export class ConcourService {
@@ -50,30 +51,35 @@ export class ConcourService {
     }
   }
 
-  async findAllPublished(paginate: PaginateFunction) {
-    const concours = await paginate(this.prisma.concour, {
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        closingDate: true,
-        concourDate: true,
-        positionsNumber: true,
-        concourSpeciality: {
-          select: {
-            speciality: {
-              select: {
-                name: true,
-                id: true,
+  async findAllPublished(page: number, perPage: number) {
+    const paginate = createPaginator({ perPage });
+    const concours = await paginate<Concour, Prisma.ConcourFindManyArgs>(
+      this.prisma.concour,
+      {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          closingDate: true,
+          concourDate: true,
+          positionsNumber: true,
+          concourSpeciality: {
+            select: {
+              speciality: {
+                select: {
+                  name: true,
+                  id: true,
+                },
               },
             },
           },
         },
+        where: {
+          closed: false,
+        },
       },
-      where: {
-        closed: false,
-      },
-    });
+      { page },
+    );
 
     return concours;
   }
@@ -107,29 +113,34 @@ export class ConcourService {
     });
   }
 
-  async findAll(paginate: PaginateFunction) {
-    const concours = await paginate(this.prisma.concour, {
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        closingDate: true,
-        concourDate: true,
-        positionsNumber: true,
-        anounce: true,
-        closed: true,
-        concourSpeciality: {
-          select: {
-            speciality: {
-              select: {
-                name: true,
-                id: true,
+  async findAll(page, perPage) {
+    const paginate = createPaginator({ perPage });
+    const concours = await paginate<Concour, Prisma.ConcourFindManyArgs>(
+      this.prisma.concour,
+      {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          closingDate: true,
+          concourDate: true,
+          positionsNumber: true,
+          anounce: true,
+          closed: true,
+          concourSpeciality: {
+            select: {
+              speciality: {
+                select: {
+                  name: true,
+                  id: true,
+                },
               },
             },
           },
         },
       },
-    });
+      { page },
+    );
     return concours;
   }
 
