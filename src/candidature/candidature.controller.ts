@@ -20,8 +20,6 @@ import { diskStorage } from 'multer';
 import { CandidatureDto } from './dto';
 import { CandidatureService } from './candidature.service';
 import { Public } from '@/auth/decorator';
-import { GetPaginate } from '@/prisma/decorator/get-paginate';
-import { PaginateFunction } from 'prisma-pagination';
 import { CandidatureState } from '@prisma/client';
 import { Response } from 'express';
 
@@ -65,20 +63,22 @@ export class CandidatureController {
   })
   @Get()
   findAll(
-    @GetPaginate() paginate: PaginateFunction,
     @Query('concour') concour: string,
     @Query('speciality') speciality: string,
     @Query('keyword') keyword: string,
-    @Query('state') state: string,
+    @Query('state') state: CandidatureState,
     @Query('archived') archived: string,
+    @Query('page') page = 1,
+    @Query('perPage') perPage = 20,
   ) {
     return this.candidatureService.findAll(
-      paginate,
       concour,
       speciality,
       keyword,
       state,
       archived == 'true',
+      page,
+      perPage,
     );
   }
 

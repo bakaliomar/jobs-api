@@ -10,9 +10,10 @@ import { CandidatureState } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { createReadStream, rm } from 'fs';
 import { join } from 'path';
-import { PaginateFunction } from 'prisma-pagination';
+import { createPaginator } from 'prisma-pagination';
 import { CandidatureDto } from './dto';
 import { Response } from 'express';
+import { Candidature, Prisma } from '@prisma/client';
 
 @Injectable()
 export class CandidatureService {
@@ -85,61 +86,70 @@ export class CandidatureService {
   }
 
   async findAll(
-    paginate: PaginateFunction,
     concour: string,
     speciality: string,
     keyword: string,
-    state: string,
+    state: CandidatureState,
     archived: boolean,
+    page: number,
+    perPage: number,
   ) {
-    const candiadatures = await paginate(this.prisma.candidature, {
-      where: {
-        ...(concour ? { concourId: concour } : {}),
-        ...(speciality ? { specialityId: speciality } : {}),
-        ...(state ? { state } : {}),
-        ...(archived ? { isArchived: archived } : {}),
-        ...(keyword
-          ? {
-              user: {
-                OR: [
-                  { firstName: { contains: keyword } },
-                  { lastName: { contains: keyword } },
-                  { cin: { contains: keyword } },
-                ],
-              },
-            }
-          : {}),
+    const paginate = createPaginator({ perPage });
+    const candiadatures = await paginate<
+      Candidature,
+      Prisma.CandidatureFindManyArgs
+    >(
+      this.prisma.candidature,
+      {
+        where: {
+          ...(concour ? { concourId: concour } : {}),
+          ...(speciality ? { specialityId: speciality } : {}),
+          ...(state ? { state } : {}),
+          ...(archived ? { isArchived: archived } : {}),
+          ...(keyword
+            ? {
+                user: {
+                  OR: [
+                    { firstName: { contains: keyword } },
+                    { lastName: { contains: keyword } },
+                    { cin: { contains: keyword } },
+                  ],
+                },
+              }
+            : {}),
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          establishment: true,
+          isArchived: true,
+          state: true,
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              title: true,
+              cin: true,
+            },
+          },
+          speciality: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          concour: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       },
-      select: {
-        id: true,
-        createdAt: true,
-        establishment: true,
-        isArchived: true,
-        state: true,
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            title: true,
-            cin: true,
-          },
-        },
-        speciality: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        concour: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
+      { page },
+    );
 
     return candiadatures;
   }

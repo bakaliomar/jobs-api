@@ -20,8 +20,6 @@ import { ConcourService } from './concour.service';
 import { diskStorage } from 'multer';
 import { ConcourDto, UpdateConcourDto } from './dto';
 import { Public } from '@/auth/decorator';
-import { GetPaginate } from '@/prisma/decorator/get-paginate';
-import { PaginateFunction } from 'prisma-pagination';
 
 @Controller('concours')
 export class ConcourController {
@@ -62,8 +60,8 @@ export class ConcourController {
 
   @Public()
   @Get('/published')
-  findAllPublished(@GetPaginate() paginate: PaginateFunction) {
-    return this.concourService.findAllPublished(paginate);
+  findAllPublished(@Query('page') page = 1, @Query('perPage') perPage = 10) {
+    return this.concourService.findAllPublished(page, perPage);
   }
 
   @Public()
@@ -84,8 +82,8 @@ export class ConcourController {
     possession: 'any',
   })
   @Get()
-  findAll(@GetPaginate() paginate: PaginateFunction) {
-    return this.concourService.findAll(paginate);
+  findAll(@Query('page') page = 1, @Query('perPage') perPage = 10) {
+    return this.concourService.findAll(page, perPage);
   }
 
   @Public()
