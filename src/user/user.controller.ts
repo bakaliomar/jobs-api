@@ -6,13 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { isNil, omitBy } from 'lodash';
 import { GetUser } from '@/auth/decorator';
 import { UseRoles } from 'nest-access-control';
-import { GetPaginate } from '@/prisma/decorator/get-paginate';
-import { PaginateFunction } from 'prisma-pagination';
 import { UserService } from './user.service';
 import { userDto } from './dto/user.dto';
 
@@ -31,8 +30,8 @@ export class UserController {
     possession: 'any',
   })
   @Get()
-  getAllUsers(@GetPaginate() paginate: PaginateFunction) {
-    return this.userService.getAllUsers(paginate);
+  getAllUsers(@Query('page') page: number, @Query('perPage') perPage = 10) {
+    return this.userService.getAllUsers(page, perPage);
   }
 
   @UseRoles({
