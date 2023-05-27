@@ -63,7 +63,7 @@ export class UpdateConcourDto {
 
   @IsBooleanString()
   @IsOptional()
-  closed: boolean;
+  closed: string;
 
   @IsNumberString()
   @IsOptional()

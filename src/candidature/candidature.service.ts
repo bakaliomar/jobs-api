@@ -305,13 +305,31 @@ export class CandidatureService {
         'etablisment',
         'archived',
         'satatus',
+        'profession actuelle',
+        'Annee obtention',
+        'pays',
+        'nom de etablissement',
+        'niveau du diplome',
+        'specialite du diplome',
+        'titre du diplome',
+        'specialite',
+        'concour',
         'prenom',
         'nom',
         'email',
         'titre',
         'cin',
-        'specialite',
-        'concour',
+        'prenom arabic',
+        'nom arabic',
+        'date de naissance',
+        'lieu de naissance',
+        'lieu de naissance arabic',
+        'telephone',
+        'adresse',
+        'adresse arabic',
+        'ville',
+        'ville arabic',
+        'code postal',
       ];
 
       //this statement tells the browser what type of data is supposed to download and force it to download
@@ -320,7 +338,6 @@ export class CandidatureService {
         'Content-Disposition': 'attachment; filename=data.csv',
       });
       // whereas this part is in charge of telling what data should be parsed and be downloaded
-      console.log(this.dataToCSV(candidatures, columns));
       res.end(this.dataToCSV(candidatures, columns), 'binary');
 
       console.log('Finished writing data');
@@ -361,6 +378,13 @@ export class CandidatureService {
         establishment: true,
         isArchived: true,
         state: true,
+        currentJob: true,
+        graduationYear: true,
+        graduationCountry: true,
+        establishmentName: true,
+        degreeLevel: true,
+        degreeSpeciality: true,
+        degreeTitle: true,
         user: {
           select: {
             id: true,
@@ -369,6 +393,17 @@ export class CandidatureService {
             email: true,
             title: true,
             cin: true,
+            firstNameArabic: true,
+            lastNameArabic: true,
+            birthDate: true,
+            birthPlace: true,
+            birthPlaceArabic: true,
+            phone: true,
+            address: true,
+            addressArabic: true,
+            city: true,
+            cityArabic: true,
+            codePostal: true,
           },
         },
         speciality: {
@@ -393,7 +428,6 @@ export class CandidatureService {
     const allObjects = [];
     // Pushing the headers, as the first arr in the 2-dimensional array 'allObjects' would be the first row
     allObjects.push(headers);
-
     //Now iterating through the list and build up an array that contains the data of every object in the list, in the same order of the headers
     dataList.forEach(function (object) {
       const arr = [];
@@ -402,13 +436,31 @@ export class CandidatureService {
       arr.push(object.establishment);
       arr.push(object.isArchived);
       arr.push(object.state);
+      arr.push(object.currentJob);
+      arr.push(object.graduationYear);
+      arr.push(object.graduationCountry);
+      arr.push(object.establishmentName);
+      arr.push(object.degreeLevel);
+      arr.push(object.degreeSpeciality);
+      arr.push(object.degreeTitle);
+      arr.push(object.speciality.name);
+      arr.push(object.concour.name);
       arr.push(object.user.firstName);
       arr.push(object.user.lastName);
       arr.push(object.user.email);
       arr.push(object.user.title);
       arr.push(object.user.cin);
-      arr.push(object.speciality.name);
-      arr.push(object.concour.name);
+      arr.push(object.user.firstNameArabic);
+      arr.push(object.user.lastNameArabic);
+      arr.push(object.user.birthDate);
+      arr.push(object.user.birthPlace);
+      arr.push(object.user.birthPlaceArabic);
+      arr.push(object.user.phone);
+      arr.push(object.user.address);
+      arr.push(object.user.addressArabic);
+      arr.push(object.user.city);
+      arr.push(object.user.cityArabic);
+      arr.push(object.user.codePostal);
 
       // Adding the array as additional element to the 2-dimensional array. It will evantually be converted to a single row
       allObjects.push(arr);

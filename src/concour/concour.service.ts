@@ -202,7 +202,7 @@ export class ConcourService {
           ? new Date(concour.concourDate)
           : undefined,
         positionsNumber: +concour.positionsNumber,
-        closed: concour.closed == true,
+        closed: concour.closed == 'true',
         anounce: name ? name : undefined,
       };
 
