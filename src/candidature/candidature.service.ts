@@ -8,11 +8,10 @@ import {
 } from '@nestjs/common';
 import { CandidatureState } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { createReadStream, rm } from 'fs';
+import { createReadStream, rm, writeFileSync } from 'fs';
 import { join } from 'path';
 import { createPaginator } from 'prisma-pagination';
 import { CandidatureDto } from './dto';
-import { Response } from 'express';
 import { Candidature, Prisma } from '@prisma/client';
 
 @Injectable()
@@ -279,13 +278,13 @@ export class CandidatureService {
   }
 
   async exportExcel(
-    res: Response,
     concour?: string,
     speciality?: string,
     keyword?: string,
     state?: string,
     archived?: boolean,
   ) {
+    const filePath = join(process.cwd(), 'files', 'candidatures.csv');
     try {
       const candidatures = await this.getCandidatures(
         concour,
@@ -331,18 +330,16 @@ export class CandidatureService {
         'ville arabic',
         'code postal',
       ];
-
-      //this statement tells the browser what type of data is supposed to download and force it to download
-      res.writeHead(200, {
-        'Content-Type': 'text/csv',
-        'Content-Disposition': 'attachment; filename=data.csv',
-      });
       // whereas this part is in charge of telling what data should be parsed and be downloaded
-      res.end(this.dataToCSV(candidatures, columns), 'binary');
-
-      console.log('Finished writing data');
+      writeFileSync(filePath, this.dataToCSV(candidatures, columns));
+      const file = createReadStream(filePath);
+      return new StreamableFile(file);
     } catch (err) {
       throw new BadRequestException(err);
+    } finally {
+      rm(filePath, { recursive: true }, (err) => {
+        console.log(err);
+      });
     }
   }
 
@@ -452,7 +449,7 @@ export class CandidatureService {
       arr.push(object.user.cin);
       arr.push(object.user.firstNameArabic);
       arr.push(object.user.lastNameArabic);
-      arr.push(object.user.birthDate);
+      arr.push((object.user.birthDate as Date).toISOString().split('T')[0]);
       arr.push(object.user.birthPlace);
       arr.push(object.user.birthPlaceArabic);
       arr.push(object.user.phone);

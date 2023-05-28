@@ -10,7 +10,6 @@ import {
   Patch,
   Post,
   Query,
-  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,7 +20,6 @@ import { CandidatureDto } from './dto';
 import { CandidatureService } from './candidature.service';
 import { Public } from '@/auth/decorator';
 import { CandidatureState } from '@prisma/client';
-import { Response } from 'express';
 
 @Controller('candidatures')
 export class CandidatureController {
@@ -133,15 +131,13 @@ export class CandidatureController {
   })
   @Get('/excel/download')
   exportExcel(
-    @Res() res: Response,
     @Query('concour') concour?: string,
     @Query('speciality') speciality?: string,
     @Query('keyword') keyword?: string,
     @Query('state') state?: string,
     @Query('archived') archived?: string,
   ) {
-    this.candidatureService.exportExcel(
-      res,
+    return this.candidatureService.exportExcel(
       concour,
       speciality,
       keyword,
