@@ -426,41 +426,40 @@ export class CandidatureService {
     // Pushing the headers, as the first arr in the 2-dimensional array 'allObjects' would be the first row
     allObjects.push(headers);
     //Now iterating through the list and build up an array that contains the data of every object in the list, in the same order of the headers
-    dataList.forEach(function (object) {
-      const arr = [];
-      arr.push(object.id);
-      arr.push((object.createdAt as Date).toISOString());
-      arr.push(object.establishment);
-      arr.push(object.isArchived);
-      arr.push(object.state);
-      arr.push(object.currentJob);
-      arr.push(object.graduationYear);
-      arr.push(object.graduationCountry);
-      arr.push(object.establishmentName);
-      arr.push(object.degreeLevel);
-      arr.push(object.degreeSpeciality);
-      arr.push(object.degreeTitle);
-      arr.push(object.speciality.name);
-      arr.push(object.concour.name);
-      arr.push(object.user.firstName);
-      arr.push(object.user.lastName);
-      arr.push(object.user.email);
-      arr.push(object.user.title);
-      arr.push(object.user.cin);
-      arr.push(object.user.firstNameArabic);
-      arr.push(object.user.lastNameArabic);
-      arr.push((object.user.birthDate as Date).toISOString().split('T')[0]);
-      arr.push(object.user.birthPlace);
-      arr.push(object.user.birthPlaceArabic);
-      arr.push(object.user.phone);
-      arr.push(object.user.address);
-      arr.push(object.user.addressArabic);
-      arr.push(object.user.city);
-      arr.push(object.user.cityArabic);
-      arr.push(object.user.codePostal);
-
+    dataList.forEach(async (object) => {
       // Adding the array as additional element to the 2-dimensional array. It will evantually be converted to a single row
-      allObjects.push(arr);
+      await allObjects.push([
+        object.id,
+        (object.createdAt as Date).toISOString(),
+        object.establishment,
+        object.isArchived,
+        object.state,
+        object.currentJob,
+        object.graduationYear,
+        object.graduationCountry,
+        object.establishmentName,
+        object.degreeLevel,
+        object.degreeSpeciality,
+        object.degreeTitle,
+        object.speciality.name,
+        object.concour.name,
+        object.user.firstName,
+        object.user.lastName,
+        object.user.email,
+        object.user.title,
+        object.user.cin,
+        object.user.firstNameArabic,
+        object.user.lastNameArabic,
+        (object.user.birthDate as Date).toISOString().split('T')[0],
+        object.user.birthPlace,
+        object.user.birthPlaceArabic,
+        object.user.phone,
+        object.user.address,
+        object.user.addressArabic,
+        object.user.city,
+        object.user.cityArabic,
+        object.user.codePostal,
+      ]);
     });
 
     // Initializing the output in a new variable 'csvContent'
