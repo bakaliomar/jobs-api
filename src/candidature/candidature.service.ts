@@ -468,7 +468,7 @@ export class CandidatureService {
     // The code below takes two-dimensional array and converts it to be strctured as CSV
     // *** It can be taken apart from the function, if all you need is to convert an array to CSV
     allObjects.forEach(function (infoArray, index) {
-      const dataString = infoArray.join(',');
+      const dataString = infoArray.join('|');
       csvContent += index < allObjects.length ? dataString + '\n' : dataString;
     });
 
