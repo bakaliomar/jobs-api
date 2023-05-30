@@ -13,6 +13,7 @@ import { join } from 'path';
 import { createPaginator } from 'prisma-pagination';
 import { CandidatureDto } from './dto';
 import { Candidature, Prisma } from '@prisma/client';
+import { Workbook } from 'exceljs';
 
 @Injectable()
 export class CandidatureService {
@@ -284,6 +285,83 @@ export class CandidatureService {
     state?: string,
     archived?: boolean,
   ) {
+    const filePath = join(process.cwd(), 'files', 'candidatures.xlsx');
+    try {
+      const candidatures = await this.getCandidatures(
+        concour,
+        speciality,
+        keyword,
+        state,
+        archived,
+      );
+
+      if (!candidatures) {
+        throw new NotFoundException('No Data to Download');
+      }
+
+      const workbook = new Workbook();
+      const worksheet = workbook.addWorksheet('Data');
+
+      const columns = [
+        'id',
+        'date',
+        'etablisment',
+        'archived',
+        'satatus',
+        'profession actuelle',
+        'Annee obtention',
+        'pays',
+        'nom de etablissement',
+        'niveau du diplome',
+        'specialite du diplome',
+        'titre du diplome',
+        'specialite',
+        'concour',
+        'prenom',
+        'nom',
+        'email',
+        'titre',
+        'cin',
+        'prenom arabic',
+        'nom arabic',
+        'date de naissance',
+        'lieu de naissance',
+        'lieu de naissance arabic',
+        'telephone',
+        'adresse',
+        'adresse arabic',
+        'ville',
+        'ville arabic',
+        'code postal',
+      ];
+
+      worksheet.addRow(columns);
+
+      const data = this.dataToCSV(candidatures);
+
+      data.forEach((val) => {
+        worksheet.addRow(val);
+      });
+
+      await workbook.xlsx.writeFile(filePath);
+      const file = createReadStream(filePath);
+      return new StreamableFile(file);
+    } catch (err) {
+      throw new BadRequestException(err);
+    } finally {
+      rm(filePath, { recursive: true }, (err) => {
+        console.log(err);
+      });
+    }
+  }
+
+  async exportCsv(
+    concour?: string,
+    speciality?: string,
+    keyword?: string,
+    state?: string,
+    archived?: boolean,
+  ) {
     const filePath = join(process.cwd(), 'files', 'candidatures.csv');
     try {
       const candidatures = await this.getCandidatures(
@@ -330,8 +408,22 @@ export class CandidatureService {
         'ville arabic',
         'code postal',
       ];
+
+      const allObjects = [columns, ...this.dataToCSV(candidatures)];
+
+      // Initializing the output in a new variable 'csvContent'
+      let csvContent = '';
+
+      // The code below takes two-dimensional array and converts it to be strctured as CSV
+      // *** It can be taken apart from the function, if all you need is to convert an array to CSV
+      allObjects.forEach(function (infoArray, index) {
+        const dataString = infoArray.join('|');
+        csvContent +=
+          index < allObjects.length ? dataString + '\n' : dataString;
+      });
+
       // whereas this part is in charge of telling what data should be parsed and be downloaded
-      writeFileSync(filePath, this.dataToCSV(candidatures, columns));
+      writeFileSync(filePath, csvContent);
       const file = createReadStream(filePath);
       return new StreamableFile(file);
     } catch (err) {
@@ -421,10 +513,8 @@ export class CandidatureService {
     return candiadatures;
   }
 
-  dataToCSV(dataList, headers) {
+  dataToCSV(dataList) {
     const allObjects = [];
-    // Pushing the headers, as the first arr in the 2-dimensional array 'allObjects' would be the first row
-    allObjects.push(headers);
     //Now iterating through the list and build up an array that contains the data of every object in the list, in the same order of the headers
     dataList.forEach(async (object) => {
       // Adding the array as additional element to the 2-dimensional array. It will evantually be converted to a single row
@@ -462,18 +552,7 @@ export class CandidatureService {
       ]);
     });
 
-    // Initializing the output in a new variable 'csvContent'
-    let csvContent = '';
-
-    // The code below takes two-dimensional array and converts it to be strctured as CSV
-    // *** It can be taken apart from the function, if all you need is to convert an array to CSV
-    allObjects.forEach(function (infoArray, index) {
-      const dataString = infoArray.join('|');
-      csvContent += index < allObjects.length ? dataString + '\n' : dataString;
-    });
-
-    // Returning the CSV output
-    return csvContent;
+    return allObjects;
   }
 
   async createUser(candidature: CandidatureDto) {

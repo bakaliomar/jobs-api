@@ -4,6 +4,7 @@ import {
   Delete,
   FileTypeValidator,
   Get,
+  Header,
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
@@ -129,6 +130,11 @@ export class CandidatureController {
     action: 'read',
     possession: 'any',
   })
+  @Header(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  @Header('Content-Disposition', 'attachment; filename=file.xlsx')
   @Get('/excel/download')
   exportExcel(
     @Query('concour') concour?: string,
@@ -138,6 +144,28 @@ export class CandidatureController {
     @Query('archived') archived?: string,
   ) {
     return this.candidatureService.exportExcel(
+      concour,
+      speciality,
+      keyword,
+      state,
+      archived == 'true',
+    );
+  }
+
+  @UseRoles({
+    resource: 'candidateurs',
+    action: 'read',
+    possession: 'any',
+  })
+  @Get('/csv/download')
+  exportCsv(
+    @Query('concour') concour?: string,
+    @Query('speciality') speciality?: string,
+    @Query('keyword') keyword?: string,
+    @Query('state') state?: string,
+    @Query('archived') archived?: string,
+  ) {
+    return this.candidatureService.exportCsv(
       concour,
       speciality,
       keyword,
