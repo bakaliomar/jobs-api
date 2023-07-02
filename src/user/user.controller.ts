@@ -8,7 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { isNil, omitBy } from 'lodash';
 import { GetUser } from '@/auth/decorator';
 import { UseRoles } from 'nest-access-control';
@@ -30,8 +30,13 @@ export class UserController {
     possession: 'any',
   })
   @Get()
-  getAllUsers(@Query('page') page: number, @Query('perPage') perPage = 10) {
-    return this.userService.getAllUsers(page, perPage);
+  getAllUsers(
+    @Query('page') page: number,
+    @Query('roles') roles: string,
+    @Query('keyword') keyword?: string,
+    @Query('perPage') perPage = 10,
+  ) {
+    return this.userService.getAllUsers(page, keyword, roles as Role, perPage);
   }
 
   @UseRoles({
