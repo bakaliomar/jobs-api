@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { User, Prisma } from '@prisma/client';
+import { User, Prisma, Role } from '@prisma/client';
 import { createPaginator } from 'prisma-pagination';
 import { userDto } from './dto';
 import * as argon from 'argon2';
@@ -14,12 +14,31 @@ import * as argon from 'argon2';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async getAllUsers(page: number, perPage: number) {
+  async getAllUsers(
+    page: number,
+    keyword: string,
+    roles: Role,
+    perPage: number,
+  ) {
     const paginate = createPaginator({ perPage });
     const users = await paginate<User, Prisma.UserFindManyArgs>(
       this.prisma.user,
       {
+        where: {
+          ...(roles ? { roles } : {}),
+          ...(keyword
+            ? {
+                OR: [
+                  { firstName: { contains: keyword } },
+                  { lastName: { contains: keyword } },
+                  { cin: { contains: keyword } },
+                  { email: { contains: keyword } },
+                ],
+              }
+            : {}),
+        },
         select: {
+          id: true,
           email: true,
           firstName: true,
           lastName: true,
