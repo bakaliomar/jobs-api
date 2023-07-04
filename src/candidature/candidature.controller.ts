@@ -66,7 +66,7 @@ export class CandidatureController {
     @Query('speciality') speciality: string,
     @Query('keyword') keyword: string,
     @Query('state') state: CandidatureState,
-    @Query('archived') archived: string,
+    @Query('archived') archived = 'false',
     @Query('page') page = 1,
     @Query('perPage') perPage = 20,
   ) {
