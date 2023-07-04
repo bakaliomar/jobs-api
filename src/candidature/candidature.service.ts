@@ -102,10 +102,10 @@ export class CandidatureService {
       this.prisma.candidature,
       {
         where: {
+          isArchived: archived,
           ...(concour ? { concourId: concour } : {}),
           ...(speciality ? { specialityId: speciality } : {}),
           ...(state ? { state } : {}),
-          ...(archived ? { isArchived: archived } : {}),
           ...(keyword
             ? {
                 user: {
