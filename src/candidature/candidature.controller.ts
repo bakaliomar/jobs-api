@@ -141,7 +141,7 @@ export class CandidatureController {
     @Query('speciality') speciality?: string,
     @Query('keyword') keyword?: string,
     @Query('state') state?: string,
-    @Query('archived') archived?: string,
+    @Query('archived') archived = 'false',
   ) {
     return this.candidatureService.exportExcel(
       concour,
@@ -163,7 +163,7 @@ export class CandidatureController {
     @Query('speciality') speciality?: string,
     @Query('keyword') keyword?: string,
     @Query('state') state?: string,
-    @Query('archived') archived?: string,
+    @Query('archived') archived = 'false',
   ) {
     return this.candidatureService.exportCsv(
       concour,
