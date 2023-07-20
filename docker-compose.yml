@@ -31,7 +31,7 @@ services:
     networks:
       - netconn 
     volumes:
-      - myapp:/home/node/app
+      - myapp:/var/lib/postgresql/data
 
 networks:
  netconn:

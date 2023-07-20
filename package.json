@@ -9,7 +9,7 @@
     "prisma:prod:deploy": "npx prisma migrate deploy",
     "db:prod:rm": "docker compose rm prod-db -s -f -v",
     "db:prod:up": "docker compose up prod-db -d",
-    "db:prod:restart": "yarn db:prod:rm && yarn db:prod:up && sleep 1 && yarn prisma:prod:deploy",
+    "db:prod:restart": "yarn db:prod:rm && yarn db:prod:up",
     "prisma:dev:deploy": "npx prisma migrate deploy",
     "db:dev:rm": "docker compose rm dev-db -s -f -v",
     "db:dev:up": "docker compose up dev-db -d",
