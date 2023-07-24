@@ -67,13 +67,23 @@ export class ConcourController {
   @Public()
   @Get('/autocomplete')
   autocomplere(@Query('name') name: string) {
-    return this.concourService.autocomplete(name);
+    return this.concourService.autocomplete(name, true);
   }
 
   @Public()
   @Get('/:id/specialities')
   getSpecialities(@Param('id') id: string) {
     return this.concourService.getSpecialities(id);
+  }
+
+  @UseRoles({
+    resource: 'concours',
+    action: 'read',
+    possession: 'any',
+  })
+  @Get('/admin/autocomplete')
+  adminAutocomplete(@Query('name') name: string) {
+    return this.concourService.autocomplete(name, false);
   }
 
   @UseRoles({
