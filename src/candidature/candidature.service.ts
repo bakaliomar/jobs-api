@@ -14,12 +14,19 @@ import { createPaginator } from 'prisma-pagination';
 import { CandidatureDto } from './dto';
 import { Candidature, Prisma } from '@prisma/client';
 import { Workbook } from 'exceljs';
+import { rename, unlink } from 'fs';
 
 @Injectable()
 export class CandidatureService {
   constructor(private prisma: PrismaService) {}
 
-  async create(candidature: CandidatureDto, name: string) {
+  async create(candidature: CandidatureDto, oldPath: string) {
+    const filePath = join(
+      process.cwd(),
+      'files',
+      'candidatures',
+      `${candidature.cin}_${Date.now()}.pdf`,
+    );
     try {
       // check if user exist
       let user = await this.getUser(candidature.cin);
@@ -42,7 +49,7 @@ export class CandidatureService {
           isArchived: false,
           establishment: candidature.establishment,
           establishmentName: candidature.establishmentName,
-          dossierLink: name,
+          dossierLink: `${candidature.cin}_${Date.now()}.pdf`,
           state: 'UNTREATED',
         },
         select: {
@@ -72,9 +79,16 @@ export class CandidatureService {
           },
         },
       });
-
+      rename(oldPath, filePath, (err) => {
+        if (err) {
+          throw new ForbiddenException('Error uploading the file.');
+        }
+      });
       return createdCandidature;
     } catch (error) {
+      unlink(oldPath, (error) => {
+        console.log(error);
+      });
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002')
           throw new ForbiddenException(

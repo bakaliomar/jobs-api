@@ -52,7 +52,7 @@ export class CandidatureController {
     file: Express.Multer.File,
     @Body() candidature: CandidatureDto,
   ) {
-    return this.candidatureService.create(candidature, file.filename);
+    return this.candidatureService.create(candidature, file.path);
   }
 
   @UseRoles({
