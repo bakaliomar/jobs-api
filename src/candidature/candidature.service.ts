@@ -21,12 +21,7 @@ export class CandidatureService {
   constructor(private prisma: PrismaService) {}
 
   async create(candidature: CandidatureDto, oldPath: string) {
-    const filePath = join(
-      process.cwd(),
-      'files',
-      'candidatures',
-      `${candidature.cin}_${Date.now()}.pdf`,
-    );
+    const fileName = `${candidature.cin}_${Date.now()}.pdf`;
     try {
       // check if user exist
       let user = await this.getUser(candidature.cin);
@@ -49,7 +44,7 @@ export class CandidatureService {
           isArchived: false,
           establishment: candidature.establishment,
           establishmentName: candidature.establishmentName,
-          dossierLink: `${candidature.cin}_${Date.now()}.pdf`,
+          dossierLink: fileName,
           state: 'UNTREATED',
         },
         select: {
@@ -79,11 +74,15 @@ export class CandidatureService {
           },
         },
       });
-      rename(oldPath, filePath, (err) => {
-        if (err) {
-          throw new ForbiddenException('Error uploading the file.');
-        }
-      });
+      rename(
+        oldPath,
+        join(process.cwd(), 'files', 'candidatures', fileName),
+        (err) => {
+          if (err) {
+            throw new ForbiddenException('Error uploading the file.');
+          }
+        },
+      );
       return createdCandidature;
     } catch (error) {
       unlink(oldPath, (error) => {
@@ -275,7 +274,7 @@ export class CandidatureService {
         },
       });
       rm(
-        join(process.cwd(), 'files', 'anounce', dossierLink),
+        join(process.cwd(), 'files', 'candidatures', dossierLink),
         { recursive: true },
         (err) => {
           console.log(err);
