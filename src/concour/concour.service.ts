@@ -88,7 +88,7 @@ export class ConcourService {
     return await this.prisma.concour.findMany({
       where: {
         ...(name ? { name } : {}),
-        ...(closed ? { closed } : {}),
+        ...(closed ? { closed: !closed } : {}),
       },
       select: {
         id: true,
