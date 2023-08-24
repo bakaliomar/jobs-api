@@ -96,7 +96,6 @@ model Candidature {
   user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   speciality        Speciality       @relation(fields: [specialityId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, specialityId, concourId], name: "candidatureIdentifier")
   @@index([concourId], name: "cnd_cnc_id_idx")
   @@index([establishment], name: "cnd_etbl_idx")
   @@map("candidatures")
