@@ -572,7 +572,7 @@ export class CandidatureService {
     return await this.prisma.user.create({
       data: {
         title: candidature.title,
-        cin: candidature.cin,
+        cin: candidature.cin.toUpperCase(),
         firstName: candidature.firstName,
         lastName: candidature.lastName,
         firstNameArabic: candidature.firstNameArabic,
