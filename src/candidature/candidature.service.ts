@@ -29,24 +29,6 @@ export class CandidatureService {
         //create user if not exist
         user = await this.createUser(candidature);
       }
-      const concour = await this.getConcour(candidature.concourId);
-      const candidats = await this.prisma.candidature.findFirst({
-        where: {
-          user: {
-            cin: candidature.cin,
-          },
-          concour: {
-            AND: [{ id: concour.id }, { createdAt: concour.createdAt }],
-          },
-          specialityId: candidature.specialityId,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (candidats) throw new BadRequestException('candidature already');
-
       //create candidature
       const createdCandidature = await this.prisma.candidature.create({
         data: {
@@ -590,7 +572,7 @@ export class CandidatureService {
     return await this.prisma.user.create({
       data: {
         title: candidature.title,
-        cin: candidature.cin.toUpperCase(),
+        cin: candidature.cin,
         firstName: candidature.firstName,
         lastName: candidature.lastName,
         firstNameArabic: candidature.firstNameArabic,
@@ -621,19 +603,5 @@ export class CandidatureService {
         id: true,
       },
     });
-  }
-
-  async getConcour(id: string) {
-    const concour = await this.prisma.concour.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        id: true,
-        createdAt: true,
-      },
-    });
-
-    return concour;
   }
 }
