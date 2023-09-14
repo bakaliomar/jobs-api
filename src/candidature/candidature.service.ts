@@ -126,6 +126,7 @@ export class CandidatureService {
                     { firstName: { contains: keyword } },
                     { lastName: { contains: keyword } },
                     { cin: { contains: keyword } },
+                    { email: { contains: keyword } },
                   ],
                 },
               }
