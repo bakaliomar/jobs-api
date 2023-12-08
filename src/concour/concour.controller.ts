@@ -82,8 +82,11 @@ export class ConcourController {
     possession: 'any',
   })
   @Get('/admin/autocomplete')
-  adminAutocomplete(@Query('name') name: string) {
-    return this.concourService.autocomplete(name, false);
+  adminAutocomplete(
+    @Query('name') name: string,
+    @Query('archived') archived: string,
+  ) {
+    return this.concourService.autocomplete(name, false, archived === 'true');
   }
 
   @UseRoles({

@@ -84,11 +84,13 @@ export class ConcourService {
     return concours;
   }
 
-  async autocomplete(name: string, closed: boolean) {
+  async autocomplete(name: string, closed: boolean, isArchived = false) {
     return await this.prisma.concour.findMany({
       where: {
         ...(name ? { name } : {}),
-        ...(closed ? { closed: !closed } : {}),
+        ...(closed
+          ? { closed: !closed }
+          : { candidatures: { some: { isArchived } } }),
       },
       select: {
         id: true,
