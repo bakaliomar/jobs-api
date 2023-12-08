@@ -123,10 +123,10 @@ export class CandidatureService {
             ? {
                 user: {
                   OR: [
-                    { firstName: { contains: keyword } },
-                    { lastName: { contains: keyword } },
-                    { cin: { contains: keyword } },
-                    { email: { contains: keyword } },
+                    { firstName: { contains: keyword, mode: 'insensitive' } },
+                    { lastName: { contains: keyword, mode: 'insensitive' } },
+                    { cin: { contains: keyword, mode: 'insensitive' } },
+                    { email: { contains: keyword, mode: 'insensitive' } },
                   ],
                 },
               }

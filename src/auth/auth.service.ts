@@ -18,7 +18,7 @@ export class AuthService {
     //find the user by email or cin
     const user = await this.prisma.user.findFirst({
       where: {
-        OR: [{ email: dto.userName }, { cin: dto.userName }],
+        OR: [{ email: dto.userName }, { userName: dto.userName }],
       },
     });
     //if user doesn't exist throw exception
